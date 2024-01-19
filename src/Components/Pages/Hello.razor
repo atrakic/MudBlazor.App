@@ -1,0 +1,9 @@
+@page "/hello"
+@inject HelloService HelloService
+
+<MudCard>
+    <MudCardContent>
+        <h3>Hello Page</h3>
+        <p>@HelloService.GetMessage()</p>
+    </MudCardContent>
+</MudCard>

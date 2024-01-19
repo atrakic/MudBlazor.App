@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -exo pipefail
+
+printenv
+
+# dotnet add package Microsoft.EntityFrameworkCore
+# dotnet add package Microsoft.EntityFrameworkCore.Design
+# dotnet add package Microsoft.EntityFrameworkCore.SQLite
+# dotnet add package Microsoft.VisualStudio.Web.CodeGeneration.Design
+# dotnet add package Microsoft.EntityFrameworkCore.SqlServer
+# dotnet add package Microsoft.EntityFrameworkCore.Tools
+
+#dotnet ef migrations add InitialCreate
+#u=$(git ls-files --others ./Migrations)
+#test -z "$u" && dotnet ef migrations add Demo_$(date +"%s")
+#dotnet ef migrations add Demo_$(date +"%s")
+dotnet ef --version
+dotnet ef database update -v
+dotnet ef migrations list --no-build

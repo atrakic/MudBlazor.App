@@ -1,0 +1,34 @@
+@page "/products"
+@inject ProductService ProductService
+@rendermode InteractiveServer
+
+<PageTitle>Products</PageTitle>
+
+<h3>Products</h3>
+
+@if (products == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <MudTable Items="products">
+        <HeaderContent>
+            <MudTh>Product Name</MudTh>
+            <MudTh>Price</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Product Name">@context.Name</MudTd>
+            <MudTd DataLabel="Price">@context.Price</MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
+@code {
+    private List<Product> products;
+
+    protected override async Task OnInitializedAsync()
+    {
+        products = await ProductService.GetProductsAsync();
+    }
+}

@@ -1,0 +1,58 @@
+services:
+  app:
+    build:
+      context: .
+    container_name: app
+    environment:
+      # - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_HTTP_PORTS=8000
+      # https://github.com/dotnet/dotnet-docker/blob/main/samples/enable-globalization.md
+      - TZ="Etc/UTC" # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+    ports:
+      - 8000:8000
+    depends_on:
+      migrations:
+        condition: service_completed_successfully
+
+  migrations:
+    build: ./docker/migrations
+    container_name: migrations
+    tty: true
+    environment:
+      - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD}
+      - ASPNETCORE_ENVIRONMENT=Production
+      - TZ="Etc/UTC"
+    working_dir: /app
+    volumes:
+      - $PWD/src:/app:rw
+      #- /:/app:rw
+      #- ./src/appsettings.json:/app/appsettings.json:ro
+      #- ./src/migrations:/app/migrations:rw
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        set -exo pipefail
+        dotnet ef database update --context ApplicationDbContext --verbose
+        dotnet ef migrations list --no-build --context ApplicationDbContext --verbose
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: db
+    hostname: db
+    environment:
+      - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD}
+      - ACCEPT_EULA=Y
+      - MSSQL_AGENT_ENABLED=true
+    ports:
+      - 1433:1433
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "${MSSQL_SA_PASSWORD}" -Q "SELECT getdate()" -b
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s

@@ -1,0 +1,31 @@
+@page "/sum"
+@inject SumService SumService
+@rendermode InteractiveServer
+
+<MudCard>
+    <MudCardContent>
+        <h3>Sum Calculation</h3>
+        <MudForm>
+            <MudTextField type="number" @bind-Value="Number1" Label="Number 1" />
+            <MudTextField type="number" @bind-Value="Number2" Label="Number 2" />
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CalculateSum">Calculate</MudButton>
+        </MudForm>
+        @if (ShowResult)
+        {
+            <MudText>The sum of @Number1 and @Number2 is: @SumResult</MudText>
+        }
+    </MudCardContent>
+</MudCard>
+
+@code {
+    private int Number1 { get; set; }
+    private int Number2 { get; set; }
+    private int SumResult { get; set; }
+    private bool ShowResult { get; set; }
+
+    private void CalculateSum()
+    {
+        SumResult = SumService.CalculateSum(Number1, Number2);
+        ShowResult = true;
+    }
+}

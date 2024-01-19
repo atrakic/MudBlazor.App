@@ -1,0 +1,22 @@
+@page "/products"
+@rendermode InteractiveServer
+@inject ProductService ProductService
+
+<MudTable Items="@ProductService.GetProducts()">
+    <HeaderContent>
+        <MudTh>Product Name</MudTh>
+        <MudTh>Price</MudTh>
+        <MudTh>Quantity</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Product Name">@context.Name</MudTd>
+        <MudTd DataLabel="Price">@context.Price</MudTd>
+        <MudTd DataLabel="Quantity">@context.Quantity</MudTd>
+    </RowTemplate>
+</MudTable>
+
+@code {
+    // Inject ProductService to access the Products table
+    [Inject]
+    public ProductService ProductService { get; set; }
+}
