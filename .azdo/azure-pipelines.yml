@@ -1,0 +1,23 @@
+trigger:
+  - main
+
+variables:
+  buildConfiguration: 'Release'
+  vmImageName: ubuntu-latest
+
+stages:
+  - stage: Build
+    displayName: Build stage
+    
+    jobs:
+      - job: Build
+        displayName: Build
+        pool:
+          vmImage: $(vmImageName)
+
+        steps:
+          - script: dotnet build --configuration $(buildConfiguration)
+            displayName: 'dotnet build $(buildConfiguration)'
+          
+          - script: dotnet test --configuration $(buildConfiguration)
+            displayName: 'dotnet test $(buildConfiguration)'
