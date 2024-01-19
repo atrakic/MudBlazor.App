@@ -47,6 +47,10 @@ namespace app.Services
         public async Task DeleteProductAsync(int id)
         {
             var product = await _context.Products.FindAsync(id);
+            if (product == null)
+            {
+                throw new Exception("Product not found");
+            }
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();
         }
