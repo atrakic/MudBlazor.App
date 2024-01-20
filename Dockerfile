@@ -9,10 +9,11 @@ RUN dotnet restore
 COPY src/. .
 RUN dotnet publish --no-restore -o /app
 
-
+# https://github.com/dotnet/dotnet-docker/blob/main/samples/enable-globalization.md
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 as final
 EXPOSE 8080
 WORKDIR /app
 COPY --from=build /app .
 USER $APP_UID
+ENV TZ="Etc/UTC"
 ENTRYPOINT ["./app"]

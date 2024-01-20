@@ -4,31 +4,33 @@ services:
       context: .
     container_name: app
     environment:
+      ## Uses Sqlite:
       # - ASPNETCORE_ENVIRONMENT=Development
+      ## Uses MsSql server:
       - ASPNETCORE_ENVIRONMENT=Production
+      # Override default port:
       - ASPNETCORE_HTTP_PORTS=8000
-      # https://github.com/dotnet/dotnet-docker/blob/main/samples/enable-globalization.md
-      - TZ="Etc/UTC" # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
     ports:
       - 8000:8000
     depends_on:
       migrations:
         condition: service_completed_successfully
 
+  # Run migrations:
   migrations:
     build: ./docker/migrations
     container_name: migrations
     tty: true
     environment:
       - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD}
+      ## Uses MsSql server:
       - ASPNETCORE_ENVIRONMENT=Production
-      - TZ="Etc/UTC"
     working_dir: /app
     volumes:
       - $PWD/src:/app:rw
-      #- /:/app:rw
-      #- ./src/appsettings.json:/app/appsettings.json:ro
-      #- ./src/migrations:/app/migrations:rw
+      # Example of mounting appsettings.json and run migrations:
+      #- $PWD/src/appsettings.json:/app/appsettings.json:ro
+      #- $PWD/src/migrations:/app/migrations:rw
     entrypoint:
       - /bin/bash
       - -c

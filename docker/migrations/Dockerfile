@@ -5,6 +5,7 @@ RUN set -x \
 	&& dotnet tool update --global dotnet-ef
 
 ENV PATH="${PATH}:/root/.dotnet/tools"
+ENV TZ="Etc/UTC"
 
 COPY --chmod=0755 entrypoint.sh /usr/local/bin/
 ENTRYPOINT ["entrypoint.sh"]
