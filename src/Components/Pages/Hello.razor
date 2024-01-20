@@ -1,9 +1,25 @@
 @page "/hello"
 @inject HelloService HelloService
 
+@rendermode InteractiveServer
+
 <MudCard>
-    <MudCardContent>
-        <h3>Hello Page</h3>
-        <p>@HelloService.GetMessage()</p>
+    <MudCardContent Outlined="true">
+        <MudText>Hello Page</MudText>
+        <MudText Typo="Typo.body2">@HelloService.GetMessage()</MudText>
+        <MudSpacer />
+        <MudText Typo="Typo.body2">@Text</MudText>
     </MudCardContent>
+    <MudCardActions>
+        <MudButton Variant="Variant.Text" Color="Color.Primary" @onclick="DisplayUrlData">Get latest zen</MudButton>
+    </MudCardActions>
 </MudCard>
+
+@code {
+    public string Text { get; set; } = "...";
+
+    private async Task DisplayUrlData()
+    {
+        Text = await HelloService.GetUrlAsync("https://api.github.com/zen");
+    }
+}
