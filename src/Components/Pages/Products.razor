@@ -1,10 +1,10 @@
 @page "/products"
 @inject ProductService ProductService
+@inject MudBlazor.ISnackbar snackBar
+
 @rendermode InteractiveServer
 
 <PageTitle>Products</PageTitle>
-
-<h3>Products</h3>
 
 @if (products == null)
 {
@@ -12,23 +12,87 @@
 }
 else
 {
-    <MudTable Items="products">
-        <HeaderContent>
-            <MudTh>Product Name</MudTh>
-            <MudTh>Price</MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd DataLabel="Product Name">@context.Name</MudTd>
-            <MudTd DataLabel="Price">@context.Price</MudTd>
-        </RowTemplate>
-    </MudTable>
+    <MudTable Items="products" Filter="new Func<Product, bool>(Search)">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Products</MudText>
+        <MudSpacer />
+        <MudTextField @bind-Value="@searchString" Label="Search" Adornment="Adornment.Start" Icon="search" />
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Product Name</MudTh>
+        <MudTh>Price</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="ProductName">@context.Name</MudTd>
+        <MudTd DataLabel="Price">@context.Price</MudTd>
+        <MudTd DataLabel="">
+            <MudIconButton OnClick="@(() => Edit(context.Id))" Color="Color.Primary" Icon="@Icons.Material.Filled.Edit"
+                Size="Size.Small" IconSize="Size.Small" />
+            <MudIconButton OnClick="@(() => Delete(context.Id))" Color="Color.Secondary"
+                Icon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small" />
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+    <MudDivider />
+    <MudCard Elevation="25">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">Add / Edit</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudTextField @bind-Value="product.Name" Label="Name" Variant="Variant.Text" Margin="Margin.Normal">
+            </MudTextField>
+            <MudTextField @bind-Value="product.Price" Label="Price" Variant="Variant.Text" Margin="Margin.Normal">
+            </MudTextField>
+            <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="Save">Save</MudButton>
+        </MudCardContent>
+    </MudCard>
 }
 
 @code {
+    private string searchString = "";
     private List<Product>? products;
+    private Product product = new Product();
 
     protected override async Task OnInitializedAsync()
     {
         products = await ProductService.GetProductsAsync();
+    }
+
+    private void Edit(int productId)
+    {
+        product = products?.FirstOrDefault(p => p.Id == productId) ?? new Product();
+    }
+
+    private async Task Delete(int id)
+    {
+        await ProductService.DeleteProductAsync(id);
+        products = await ProductService.GetProductsAsync();
+    }
+
+    private async Task Save()
+    {
+        if (product.Id == 0)
+        {
+            await ProductService.AddProductAsync(product);
+            snackBar.Add($"Product {product.Name} added", Severity.Success);
+        }
+        else
+        {
+            await ProductService.UpdateProductAsync(product);
+            snackBar.Add($"Product {product.Name} updated", Severity.Success);
+        }
+        products = await ProductService.GetProductsAsync();
+    }
+
+    private bool Search(Product product)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (product.Name?.Contains(searchString, StringComparison.OrdinalIgnoreCase) ?? false)
+            return true;
+        return false;
     }
 }
