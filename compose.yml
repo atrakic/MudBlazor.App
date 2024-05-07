@@ -2,6 +2,7 @@ services:
   app:
     build:
       context: .
+    restart: always
     container_name: app
     environment:
       ## Uses Sqlite:
@@ -21,6 +22,7 @@ services:
     build: ./docker/migrations
     container_name: migrations
     tty: true
+    restart: "no"
     environment:
       - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD}
       ## Uses MsSql server:

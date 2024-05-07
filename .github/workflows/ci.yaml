@@ -14,7 +14,7 @@ env:
 
 jobs:
   ci:
-    name: ci-${{matrix.os}}
+    name: Build
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
