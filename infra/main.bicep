@@ -4,8 +4,8 @@ param vmName string = 'devVM'
 @description('Username for the Virtual Machine.')
 param adminUsername string
 
-@description('User data in base64 format')
-param userData string
+@description('Custom data to be used for cloud-init configuration. ')
+param customData string
 
 @description('Type of authentication to use on the Virtual Machine. SSH key is recommended.')
 @allowed([
@@ -134,7 +134,7 @@ resource networkSecurityGroup 'Microsoft.Network/networkSecurityGroups@2023-09-0
           destinationAddressPrefix: '*'
           destinationPortRange: '22'
         }
-      },
+      }
       {
         name: 'HTTP'
         properties: {
@@ -147,7 +147,7 @@ resource networkSecurityGroup 'Microsoft.Network/networkSecurityGroups@2023-09-0
           destinationAddressPrefix: '*'
           destinationPortRange: '80'
         }
-      },
+      }
       {
         name: 'HTTPS'
         properties: {
@@ -206,7 +206,6 @@ resource publicIPAddress 'Microsoft.Network/publicIPAddresses@2023-09-01' = {
 resource vm 'Microsoft.Compute/virtualMachines@2023-09-01' = {
   name: vmName
   location: location
-  userData: userData
   properties: {
     hardwareProfile: {
       vmSize: vmSize
@@ -231,6 +230,7 @@ resource vm 'Microsoft.Compute/virtualMachines@2023-09-01' = {
       computerName: vmName
       adminUsername: adminUsername
       adminPassword: adminPasswordOrKey
+      customData: base64(customData)
       linuxConfiguration: ((authenticationType == 'password') ? null : linuxConfiguration)
     }
     securityProfile: (securityType == 'TrustedLaunch') ? securityProfileJson : null

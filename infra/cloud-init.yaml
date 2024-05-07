@@ -1,6 +1,0 @@
-#cloud-config
-runcmd:
-  - cd /usr/local/src
-  - git clone https://github.com/atrakic/MudBlazor.App app
-  - cd app
-  - docker-compose up --remove-orphans -d
