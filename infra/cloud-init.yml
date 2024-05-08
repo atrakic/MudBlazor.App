@@ -13,10 +13,7 @@ packages:
   - curl
   - gnupg-agent
   - software-properties-common
-  - docker-ce
-  - docker-ce-cli
-  - containerd.io
-  - docker-compose-plugin
+  - unattended-upgrades
   - git
 
 # Enable ipv4 forwarding, required on CIS hardened machines
@@ -25,6 +22,12 @@ write_files:
     content: |
       net.ipv4.conf.all.forwarding=1
 
+users:
+  - name: atrakic
+    groups: [docker]
+    shell: /bin/bash
+    uid: 2000
+
 # create the docker group
 groups:
   - docker
@@ -32,12 +35,11 @@ groups:
 # Add default auto created user to docker group
 system_info:
   default_user:
-    groups: [docker]
+    groups: [docker, sudo]
 
 runcmd:
-  - curl -L "https://github.com/docker/compose/releases/download/1.25.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-  - chmod +x /usr/local/bin/docker-compose
+  - curl -fsSL https://get.docker.com | sh
   - cd /usr/local/src
   - git clone --depth 1 https://github.com/atrakic/MudBlazor.App app
   - cd app
-  - docker-compose up -f init.yml --remove-orphans -d
+  - docker compose up -f init.yml -d

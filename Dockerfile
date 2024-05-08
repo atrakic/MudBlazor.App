@@ -15,6 +15,12 @@ LABEL org.opencontainers.image.source="https://github.com/atrakic/MudBlazor.App.
 EXPOSE 8080
 WORKDIR /app
 COPY --from=build /app .
+
+RUN set -x \
+    && apt-get update \
+    && apt-get install --no-install-recommends --no-install-suggests -y curl \
+    && apt-get remove --purge --auto-remove -y && rm -rf /var/lib/apt/lists/*
+
 USER $APP_UID
 ENV TZ="Etc/UTC"
 ENTRYPOINT ["./app"]

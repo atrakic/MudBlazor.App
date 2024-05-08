@@ -15,6 +15,14 @@ services:
       - VIRTUAL_HOST=${HOST_DOMAIN:-}
       - LETSENCRYPT_HOST=${HOST_DOMAIN:-}
       - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL:-}
+    volumes:
+      - ./docker/healthchecks:/healthchecks
+    healthcheck:
+      test: /healthchecks/curl.sh
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
     ports:
       - 8000:8000
     depends_on:

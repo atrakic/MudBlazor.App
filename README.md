@@ -6,7 +6,7 @@
 
 ## Azure Deployment
 
-Deploy to a single Linux server via SSH using GitHub Actions and Docker Compose, see [.github/workflows/release.yml](release.yml)
+Deploy to a single Linux server via SSH using GitHub Actions and Docker Compose, see [release.yml](.github/workflows/release.yml)
 
 
 ## Referances

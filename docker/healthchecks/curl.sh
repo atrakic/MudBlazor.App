@@ -1,5 +1,3 @@
 #!/bin/bash
 set -eo pipefail
-
-curl -o /dev/null -sf -X 'GET' \
-  'http://localhost:80/healthz' || exit
+curl -sf -X 'GET' http://localhost:8000/healthz || exit 1

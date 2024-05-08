@@ -1,9 +1,10 @@
 rgName?=exampleRG
-adminUsername?=admin
+adminUsername?=atrakic
 location?=westeurope
-userdata?=$(shell cat < cloud-init.txt)
+userdata?=$(shell cat < cloud-init.yml)
 
 all:
+	az account show
 	az group create --name $(rgName) --location $(location)
 	az deployment group create \
 		--resource-group $(rgName) \
