@@ -11,14 +11,18 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production
       # Override default port:
       - ASPNETCORE_HTTP_PORTS=8000
+      # Integration with nginx-proxy/acme-companion:
+      - VIRTUAL_HOST=${HOST_DOMAIN:-}
+      - LETSENCRYPT_HOST=${HOST_DOMAIN:-}
+      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL:-}
     ports:
       - 8000:8000
     depends_on:
-      migrations:
+      app-migrations:
         condition: service_completed_successfully
 
   # Run migrations:
-  migrations:
+  app-migrations:
     build: ./docker/migrations
     container_name: migrations
     tty: true
@@ -30,6 +34,7 @@ services:
     working_dir: /app
     volumes:
       - $PWD/src:/app:rw
+      - app-mydb:/app/App_Data
       # Example of mounting appsettings.json and run migrations:
       #- $PWD/src/appsettings.json:/app/appsettings.json:ro
       #- $PWD/src/migrations:/app/migrations:rw
@@ -52,11 +57,14 @@ services:
       - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD}
       - ACCEPT_EULA=Y
       - MSSQL_AGENT_ENABLED=true
-    ports:
-      - 1433:1433
+    #ports:
+    #  - 1433:1433
     healthcheck:
       test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "${MSSQL_SA_PASSWORD}" -Q "SELECT getdate()" -b
       interval: 10s
       timeout: 3s
       retries: 10
       start_period: 10s
+
+volumes:
+    app-mydb:

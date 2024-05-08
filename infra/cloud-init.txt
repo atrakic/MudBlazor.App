@@ -40,4 +40,4 @@ runcmd:
   - cd /usr/local/src
   - git clone --depth 1 https://github.com/atrakic/MudBlazor.App app
   - cd app
-  - docker-compose up --remove-orphans -d
+  - docker-compose up -f init.yml --remove-orphans -d
