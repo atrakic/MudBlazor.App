@@ -2,7 +2,7 @@ using app.Services;
 
 namespace MudBlazor.Tests.Services;
 
-public class HelloTests
+public class HelloServiceTests
 {
     [Fact]
     public void HelloService_Test()
