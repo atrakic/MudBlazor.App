@@ -19,28 +19,12 @@ public class ApplicationDbContext : DbContext
         _connectionString = connectionString;
     }
 
-
-    /**
-    protected override void OnConfiguring(DbContextOptions optionsBuilder)
-    {
-        optionsBuilder.UseSqlServer(_connectionString,
-            options => options.EnableRetryOnFailure());
-    }*/
-
     public DbSet<Customer> Customers { get; set; } = null!;
     public DbSet<Order> Orders { get; set; } = null!;
     public DbSet<Product> Products { get; set; } = null!;
     public DbSet<OrderDetail> OrderDetails { get; set; } = null!;
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        //modelBuilder.Entity<Product>().ToTable(b => b.IsMemoryOptimized());
-    }
 
-    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
-    {
-        //configurationBuilder.Conventions.Remove(typeof(ForeignKeyIndexConvention));
-    }
 
     /**
     // Dispose pattern.

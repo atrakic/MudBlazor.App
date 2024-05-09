@@ -17,4 +17,7 @@ clean:
 	rm -rf ./src/*.db
 	rm -rf ./src/{bin,obj}
 
+test.volume:
+	docker run --rm -i -v=shared-tmpfs:/var/tmp busybox find /var/tmp
+
 -include .env

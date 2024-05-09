@@ -1,0 +1,63 @@
+services:
+  app:
+    image: ghcr.io/${IMAGE_REPO}:${RELEASE_VERSION}
+    restart: always
+    ports:
+      - "8080"
+    container_name: app
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_HTTP_PORTS: ${ASPNETCORE_HTTP_PORTS:-8080}
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+      #ConnectionStrings__DefaultConnection: "Server=db;Database=mydb;User Id=sa;Password=${MSSQL_SA_PASSWORD};"
+      VIRTUAL_HOST: ${VIRTUAL_HOST}
+      VIRTUAL_PORT: ${VIRTUAL_PORT:-8080}
+      LETSENCRYPT_HOST: ${LETSENCRYPT_HOST}
+      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
+    volumes:
+      - ./docker/healthchecks:/healthchecks
+    depends_on:
+      migrations:
+        condition: service_completed_successfully
+
+  # Run migrations:
+  migrations:
+    image: ghcr.io/${IMAGE_REPO}:${RELEASE_VERSION}
+    restart: no
+    tty: true
+    container_name: migrations
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+      ##ConnectionStrings__DefaultConnection: "Server=db;Database=mydb;User Id=sa;Password=${MSSQL_SA_PASSWORD};"
+    working_dir: /app
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        set -exo pipefail
+        dotnet ef database update --context ApplicationDbContext --verbose
+        dotnet ef migrations list --no-build --context ApplicationDbContext --verbose
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: db
+    hostname: db
+    environment:
+      - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD}
+      - ACCEPT_EULA=Y
+      - MSSQL_AGENT_ENABLED=true
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "${MSSQL_SA_PASSWORD}" -Q "SELECT getdate()" -b
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+networks:
+  default:
+    external: true
+    name: nginx

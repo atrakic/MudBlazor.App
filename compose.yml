@@ -1,3 +1,7 @@
+# Docker compose file for running the app and migrations for development environment.
+# Db migrations are run in a separate container.
+
+
 services:
   app:
     build:
@@ -5,16 +9,10 @@ services:
     restart: always
     container_name: app
     environment:
-      ## Uses Sqlite:
-      # - ASPNETCORE_ENVIRONMENT=Development
-      ## Uses MsSql server:
-      - ASPNETCORE_ENVIRONMENT=Production
-      # Override default port:
-      - ASPNETCORE_HTTP_PORTS=8000
-      # Integration with nginx-proxy/acme-companion:
-      - VIRTUAL_HOST=${HOST_DOMAIN:-}
-      - LETSENCRYPT_HOST=${HOST_DOMAIN:-}
-      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL:-}
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
+      - ASPNETCORE_HTTPS_PORT=https://+:${ASPNETCORE_HTTPS_PORT:-8443}
+      - ASPNETCORE_URLS=http://+:${ASPNETCORE_HTTP_PORTS:-8000}
+      #- ConnectionStrings__DefaultConnection=Data Source=/var/tmp/mydb.db
     volumes:
       - ./docker/healthchecks:/healthchecks
     healthcheck:
@@ -25,27 +23,26 @@ services:
       start_period: 10s
     ports:
       - 8000:8000
+      - 8443:8443
     depends_on:
-      app-migrations:
+      migrations:
         condition: service_completed_successfully
 
   # Run migrations:
-  app-migrations:
+  migrations:
     build: ./docker/migrations
     container_name: migrations
     tty: true
-    restart: "no"
+    restart: no
     environment:
-      - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD}
-      ## Uses MsSql server:
-      - ASPNETCORE_ENVIRONMENT=Production
-    working_dir: /app
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
+      #- ConnectionStrings__DefaultConnection=Data Source=/var/tmp/mydb.db
+    ## Required to mount the app code and run migrations
     volumes:
       - $PWD/src:/app:rw
-      - app-mydb:/app/App_Data
-      # Example of mounting appsettings.json and run migrations:
+      ## Optional: example of mounting appsettings.json and run migrations:
       #- $PWD/src/appsettings.json:/app/appsettings.json:ro
-      #- $PWD/src/migrations:/app/migrations:rw
+      #- $PWD/src/Migrations:/app/Migrations:rw
     entrypoint:
       - /bin/bash
       - -c
@@ -53,26 +50,3 @@ services:
         set -exo pipefail
         dotnet ef database update --context ApplicationDbContext --verbose
         dotnet ef migrations list --no-build --context ApplicationDbContext --verbose
-    depends_on:
-      db:
-        condition: service_healthy
-
-  db:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: db
-    hostname: db
-    environment:
-      - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD}
-      - ACCEPT_EULA=Y
-      - MSSQL_AGENT_ENABLED=true
-    #ports:
-    #  - 1433:1433
-    healthcheck:
-      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "${MSSQL_SA_PASSWORD}" -Q "SELECT getdate()" -b
-      interval: 10s
-      timeout: 3s
-      retries: 10
-      start_period: 10s
-
-volumes:
-    app-mydb:

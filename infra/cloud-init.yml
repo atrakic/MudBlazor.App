@@ -1,11 +1,8 @@
 #cloud-config
-package_update: true
+# Uses the cloud-init package to install docker and git.
+# Needs variables to be passed in for the git repo and the ssh auth key
 
-apt:
-  sources:
-    docker.list:
-      source: deb [arch=amd64] https://download.docker.com/linux/ubuntu $RELEASE stable
-      keyid: 9DC858229FC7DD38854AE2D88D81803C0EBFCD88
+package_update: true
 
 packages:
   - apt-transport-https
@@ -22,24 +19,28 @@ write_files:
     content: |
       net.ipv4.conf.all.forwarding=1
 
-users:
-  - name: atrakic
-    groups: [docker]
-    shell: /bin/bash
-    uid: 2000
-
 # create the docker group
 groups:
   - docker
 
+users:
+  - default
+  - name: deploy
+    shell: /bin/bash
+    lock_passwd: true
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: adm, sudo, docker
+    ssh_authorized_keys:
+      - ${0}
+
 # Add default auto created user to docker group
 system_info:
   default_user:
-    groups: [docker, sudo]
+    groups: adm, sudo, docker
 
 runcmd:
   - curl -fsSL https://get.docker.com | sh
   - cd /usr/local/src
-  - git clone --depth 1 https://github.com/atrakic/MudBlazor.App app
+  - git clone --depth 1 ${1} app
   - cd app
-  - docker compose up -f init.yml -d
+  - docker compose -f init.yml up -d

@@ -1,3 +1,16 @@
+## Required secrets
+# - DEPLOY_HOST=
+# - DEPLOY_USERNAME=yourusername # see infra/main.bicep
+# - DEPLOY_KEY="ssh-rsa AAAAB..."
+# - LETSENCRYPT_EMAIL=mail@yourdomain.tld
+# - LETSENCRYPT_HOST=subdomain.yourdomain.tld
+
+## Optional secrets
+# - VIRTUAL_PORT
+# - HOST_DOMAIN
+# - IMAGE_REPO
+# - RELEASE_VERSION
+
 name: Release and deploy to Azure VM via SSH
 
 permissions:
@@ -7,7 +20,7 @@ on:
   release:
     types: [published]
   workflow_run:
-    workflows: ["Build"]
+    workflows: ["ci"]
     branches: [main,master]
     types:
       - completed
@@ -97,28 +110,38 @@ jobs:
             echo "TAG_NAME=${{ github.event.inputs.version }}" >> $GITHUB_ENV
           fi;
 
-      # Copy docker-compose and .env files to target server
-      - name: copy files to target server via scp
-        uses: appleboy/scp-action@v0.1.3
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USERNAME }}
-          port: 22
-          key: ${{ secrets.DEPLOY_KEY }}
-          source: "./compose.yml,./compose.prod.yml,./.env"
-          target: "~/.deploy/${{ github.event.repository.name }}/"
-
-      - name: Generate .env file
+      - name: Generate .env file before deployment
         run: |
           echo "HOST_DOMAIN=${{ secrets.DEPLOY_HOST }}" >> .env
-          echo "LETSENCRYPT_EMAIL=${{ secrets.LETSENCRYPT_EMAIL }}" >> .env
           echo "IMAGE_REPO=${{ env.image_repository_name }}" >> .env
           echo "RELEASE_VERSION=${{ env.TAG_NAME }}" >> .env
+          echo "LETSENCRYPT_HOST=${{ secrets.DEPLOY_HOST }}" >> .env
+          echo "LETSENCRYPT_EMAIL=${{ secrets.LETSENCRYPT_EMAIL }}" >> .env
+
+      # Copy docker-compose and .env files to target server
+      - name: copy files to target server via scp
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USERNAME }}
+          port: 22
+          key: ${{ secrets.DEPLOY_KEY }}
+          source: "./deploy/init.yml,./deploy/production.yml,./.env"
+          target: "~/.deploy/${{ github.event.repository.name }}/"
+
+      - name: Verify remote docker-compose config before deployment
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USERNAME }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          port: 22
+          script: |
+            cd ~/.deploy/${{ github.event.repository.name }}
+            docker compose -f ./init.yml -f ./production.yml config
 
       - name: Run remote db migrations
-        # disabled for now
-        if: false
-        uses: appleboy/ssh-action@v0.1.5
+        uses: appleboy/ssh-action@v1.0.3
         env:
           APPTOKEN: ${{ secrets.GITHUB_TOKEN }}
           USERNAME: ${{ secrets.DEPLOY_USERNAME }}
@@ -131,11 +154,11 @@ jobs:
           script: |
             echo $APPTOKEN | docker login ghcr.io -u $USERNAME --password-stdin
             cd ~/.deploy/${{ github.event.repository.name }}
-            docker compose -f ./compose.yml -f ./compose.prod.yml pull
-            docker compose -f ./compose.yml -f ./compose.prod.yml up app-migrations
+            docker compose -f ./init.yml -f ./production.yml pull --ignore-buildable
+            docker compose -f ./init.yml -f ./production.yml up migrations
 
       - name: remote docker-compose up via ssh
-        uses: appleboy/ssh-action@v0.1.5
+        uses: appleboy/ssh-action@v1.0.3
         env:
           APPTOKEN: ${{ secrets.GITHUB_TOKEN }}
           USERNAME: ${{ secrets.DEPLOY_USERNAME }}
@@ -148,7 +171,4 @@ jobs:
           script: |
             echo $APPTOKEN | docker login ghcr.io -u $USERNAME --password-stdin
             cd ~/.deploy/${{ github.event.repository.name }}
-            #docker compose -f ./compose.yml -f ./compose.prod.yml pull --ignore-buildable
-            #docker compose -f ./compose.yml -f ./compose.prod.yml up --remove-orphans --no-color -d
-            docker compose -f ./compose.yml -f ./compose.prod.yml pull --ignore-buildable
-            docker compose -f ./compose.yml up -d
+            docker compose -f ./init.yml -f ./production.yml up --remove-orphans --no-color -d
