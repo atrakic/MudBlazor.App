@@ -10,12 +10,15 @@ services:
       ASPNETCORE_HTTP_PORTS: ${ASPNETCORE_HTTP_PORTS:-8080}
       MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
       #ConnectionStrings__DefaultConnection: "Server=db;Database=mydb;User Id=sa;Password=${MSSQL_SA_PASSWORD};"
-      VIRTUAL_HOST: ${VIRTUAL_HOST}
       VIRTUAL_PORT: ${VIRTUAL_PORT:-8080}
       LETSENCRYPT_HOST: ${LETSENCRYPT_HOST}
       LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
-    volumes:
-      - ./docker/healthchecks:/healthchecks
+    healthcheck:
+      test: curl -sf -X 'GET' http://localhost:8080/healthz || exit 1
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
     depends_on:
       migrations:
         condition: service_completed_successfully
