@@ -23,12 +23,15 @@ services:
       migrations:
         condition: service_completed_successfully
 
+  # FIXME: ensure migration and appsettings files are inside
   # Run migrations:
   migrations:
     image: ghcr.io/atrakic/mudblazor.migrations:${RELEASE_VERSION}
     restart: no
-    tty: true
     container_name: migrations
+    tty: true
+    #volumes:
+    #  - $PWD/src:/app:rw
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}

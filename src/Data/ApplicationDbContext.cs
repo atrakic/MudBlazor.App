@@ -24,8 +24,6 @@ public class ApplicationDbContext : DbContext
     public DbSet<Product> Products { get; set; } = null!;
     public DbSet<OrderDetail> OrderDetails { get; set; } = null!;
 
-
-
     /**
     // Dispose pattern.
     public override void Dispose()

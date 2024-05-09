@@ -1,6 +1,12 @@
 namespace app.Services;
 
-public class HelloService
+interface IHelloService
+{
+    string GetMessage();
+    Task<string> GetUrlAsync(string url);
+}
+
+public class HelloService : IHelloService
 {
     public string GetMessage() => $"Hello from {nameof(HelloService)} Service!";
 

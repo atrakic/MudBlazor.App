@@ -1,6 +1,11 @@
 namespace app.Services;
 
-public class SumService
+interface ISumService
+{
+    int CalculateSum(int A, int B);
+}
+
+public class SumService : ISumService
 {
     public int CalculateSum(int A, int B)
     {
