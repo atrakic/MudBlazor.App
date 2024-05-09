@@ -25,7 +25,7 @@ services:
 
   # Run migrations:
   migrations:
-    image: ghcr.io/${IMAGE_REPO}:${RELEASE_VERSION}
+    image: ghcr.io/atrakic/mudblazor.migrations:${RELEASE_VERSION}
     restart: no
     tty: true
     container_name: migrations
