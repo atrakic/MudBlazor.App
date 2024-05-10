@@ -12,6 +12,13 @@ all:
 healthcheck:
 	docker inspect $(APP) --format "{{ (index (.State.Health.Log) 0).Output }}"
 
+upgrade:
+	#dotnet tool install --global dotnet-outdated-tool
+	dotnet outdated --upgrade
+
+test.volume:
+	docker run --rm -i -v=shared-tmpfs:/var/tmp busybox find /var/tmp
+
 test:
 	dotnet test
 
@@ -19,8 +26,5 @@ clean:
 	docker-compose down --remove-orphans -v --rmi local
 	rm -rf ./src/*.db
 	rm -rf ./src/{bin,obj}
-
-test.volume:
-	docker run --rm -i -v=shared-tmpfs:/var/tmp busybox find /var/tmp
 
 -include .env
