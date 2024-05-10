@@ -24,6 +24,7 @@ test:
 
 clean:
 	docker-compose down --remove-orphans -v --rmi local
+	dotnet clean
 	rm -rf ./src/*.db
 	rm -rf ./src/{bin,obj}
 
