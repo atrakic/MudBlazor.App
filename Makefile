@@ -12,6 +12,9 @@ all:
 healthcheck:
 	docker inspect $(APP) --format "{{ (index (.State.Health.Log) 0).Output }}"
 
+test:
+	dotnet test
+
 clean:
 	docker-compose down --remove-orphans -v --rmi local
 	rm -rf ./src/*.db
