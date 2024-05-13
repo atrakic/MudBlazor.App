@@ -1,79 +1,54 @@
-@description('Unique DNS Name for the Public IP used to access the Virtual Machine.')
-param dnsLabelPrefix string
+@description('VM name')
+param vmName string = 'UbuntuVM'
 
 @description('User name for the Virtual Machine.')
-param adminUsername string = 'admin'
+param adminUsername string = 'ubuntu'
 
 @description('VM size')
 param vmSize string = 'Standard_D2_v3'
 
 @description('The Ubuntu version for the VM. This will pick a fully patched image of this given Ubuntu version. Allowed values: 14.04-LTS,16.04-LTS,18.04-LTS,20.04-LTS.')
 @allowed([
-  '14.04-LTS'
-  '16.04-LTS'
-  '18.04-LTS'
   '20.04-LTS'
+  '22.04-LTS'
 ])
 param ubuntuOSVersion string = '20.04-LTS'
 
 @description('Location for all resources.')
 param location string = resourceGroup().location
 
-@description('Type of authentication to use on the Virtual Machine. SSH key is recommended.')
-@allowed([
-  'sshPublicKey'
-  'password'
-])
-param authenticationType string = 'sshPublicKey'
-
-@description('SSH Key or password for the Virtual Machine. SSH key is recommended.')
+// SSH Key or password for the Virtual Machine. SSH key is recommended.
 @secure()
 param adminPasswordOrKey string
 
-@description('VM name')
-param vmName string = 'vm1'
-
-var storageAccountName = '${uniqueString(resourceGroup().id)}sacustmdata'
 var imagePublisher = 'Canonical'
 var imageOffer = 'UbuntuServer'
-var nicName = 'networkInterface1'
-var virtualNetworkName = 'virtualNetwork1'
-var publicIPAddressName = 'publicIp1'
+var nicName = '${vmName}NetInt'
+var virtualNetworkName = 'vNet'
+var publicIPAddressName = '${vmName}PublicIP'
 var addressPrefix = '10.0.0.0/16'
 var subnet1Name = 'Subnet-1'
 var subnet1Prefix = '10.0.0.0/24'
-var publicIPAddressType = 'Dynamic'
-var storageAccountType = 'Standard_LRS'
-var linuxConfiguration = {
-  disablePasswordAuthentication: true
-  ssh: {
-    publicKeys: [
-      {
-        path: '/home/${adminUsername}/.ssh/authorized_keys'
-        keyData: adminPasswordOrKey
-      }
-    ]
-  }
-}
 var networkSecurityGroupName = 'default-NSG'
 
-resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
-  name: storageAccountName
-  location: location
-  kind: 'StorageV2'
-  sku: {
-    name: storageAccountType
-  }
-}
+@description('Unique DNS Name for the Public IP used to access the Virtual Machine.')
+param dnsLabelPrefix string = toLower('${vmName}-${uniqueString(resourceGroup().id)}')
 
-resource publicIPAddress 'Microsoft.Network/publicIPAddresses@2023-05-01' = {
+var cloudInit = loadFileAsBase64('cloud-init.yml')
+
+resource publicIPAddress 'Microsoft.Network/publicIPAddresses@2023-09-01' = {
   name: publicIPAddressName
   location: location
+  sku: {
+    name: 'Basic'
+  }
   properties: {
-    publicIPAllocationMethod: publicIPAddressType
+    publicIPAllocationMethod: 'Dynamic'
+    publicIPAddressVersion: 'IPv4'
     dnsSettings: {
       domainNameLabel: dnsLabelPrefix
     }
+    idleTimeoutInMinutes: 4
   }
 }
 
@@ -174,14 +149,6 @@ resource nic 'Microsoft.Network/networkInterfaces@2023-05-01' = {
   }
 }
 
-// https://github.com/Azure/bicep/issues/471#issuecomment-866129085
-@description('Git repo to clone')
-param gitRepo string
-
-@description('SSh auth key')
-param sshKey string
-var cloudInit = loadFileAsBase64('cloud-init.yml')
-
 resource vm 'Microsoft.Compute/virtualMachines@2023-07-01' = {
   name: vmName
   location: location
@@ -193,8 +160,19 @@ resource vm 'Microsoft.Compute/virtualMachines@2023-07-01' = {
       computerName: vmName
       adminUsername: adminUsername
       adminPassword: adminPasswordOrKey
-      customData: format(cloudInit, sshKey, gitRepo)
-      linuxConfiguration: ((authenticationType == 'password') ? null : linuxConfiguration)
+      // https://github.com/Azure/bicep/issues/471#issuecomment-866129085
+      customData: format(cloudInit, adminPasswordOrKey)
+      linuxConfiguration: {
+        disablePasswordAuthentication: true
+        ssh: {
+          publicKeys: [
+            {
+              path: '/home/${adminUsername}/.ssh/authorized_keys'
+              keyData: adminPasswordOrKey
+            }
+          ]
+        }
+      }
     }
     storageProfile: {
       imageReference: {
@@ -214,11 +192,10 @@ resource vm 'Microsoft.Compute/virtualMachines@2023-07-01' = {
         }
       ]
     }
-    diagnosticsProfile: {
-      bootDiagnostics: {
-        enabled: true
-        storageUri: storageAccount.properties.primaryEndpoints.blob
-      }
-    }
   }
 }
+
+output adminUsername string = adminUsername
+output publicIp string = publicIPAddress.properties.ipAddress
+output hostname string = publicIPAddress.properties.dnsSettings.fqdn
+output sshCommand string = 'ssh -i ~/.ssh/id_rsa ${adminUsername}@${publicIPAddress.properties.dnsSettings.fqdn}'

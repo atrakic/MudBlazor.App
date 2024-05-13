@@ -1,7 +1,4 @@
 #cloud-config
-# Uses the cloud-init package to install docker and git.
-# Needs variables to be passed in for the git repo and the ssh auth key
-
 package_update: true
 
 packages:
@@ -40,7 +37,3 @@ system_info:
 
 runcmd:
   - curl -fsSL https://get.docker.com | sh
-  - cd /usr/local/src
-  - git clone --depth 1 ${1} app
-  - cd app
-  - docker compose -f init.yml up -d

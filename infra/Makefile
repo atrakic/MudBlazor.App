@@ -1,12 +1,10 @@
 SHELL := /bin/bash
 
-rgName?=exampleRG
-adminUsername?=atrakic
+rgName?=rg-vm-demo
+adminUsername?=$(shell whoami)
 location?=northeurope
-dnsLabelPrefix?=example-$(shell date +%s)
-gitRepo?=https://github.com/atrakic/MudBlazor.App.git
 vmName?=demo
-sshAuthKey?=$(shell cat $$HOME/.ssh/id_rsa.pub)
+adminPasswordOrKey?=$(shell cat $$HOME/.ssh/id_rsa.pub)
 
 .PHONY: all status outputs test clean
 
@@ -16,10 +14,8 @@ all:
 	az deployment group create \
 		--resource-group $(rgName) \
 		--template-file main.bicep \
-		--parameters dnsLabelPrefix=$(dnsLabelPrefix) \
 		--parameters adminUsername=$(adminUsername) \
-		--parameters gitRepo=$(gitRepo) \
-		--parameters sshAuthKey=$(sshAuthKey) \
+		--parameters adminPasswordOrKey="$(adminPasswordOrKey)" \
 		--parameters vmName=$(vmName) \
 		--parameters location=$(location)
 
@@ -30,7 +26,7 @@ outputs:
 	az deployment group show --name $(rgName) --resource-group $(rgName) --query properties.outputs
 
 test:
-	curl -sL https://$(dnsLabelPrefix).northeurope.cloudapp.azure.com
+	curl -sL https://$(shell az deployment group show --name $(rgName) --resource-group $(rgName) --query properties.outputs.publicIp.value -o t)
 
 clean:
 	az group delete --name $(rgName)
