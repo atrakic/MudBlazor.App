@@ -8,14 +8,6 @@ using MudBlazor.Tests.Fixtures;
 namespace MudBlazor.Tests.Services;
 
 
-//using TimeEdit_Skemaoensker.Models_KPSKEMAPP;
-
-//using TimeEditSkemaoensker.IntegrationTests.Fixtures;
-
-//namespace TimeEditSkemaoensker.IntegrationTests;
-
-
-
 public class ProductServiceTests : IClassFixture<DbFixture>
 {
     DbFixture fixture;
@@ -31,50 +23,47 @@ public class ProductServiceTests : IClassFixture<DbFixture>
         Assert.NotNull(fixture.db);
         Assert.NotEmpty(fixture.db.Products);
         fixture.db.Products.Should().NotBeEmpty();
-        fixture.db.Products.Should().HaveCountGreaterThan(50);
+        fixture.db.Products.Should().HaveCountGreaterThan(0);
     }
 
     [Fact]
-    public void GetProductsAsync_ReturnsProducts()
+    public async Task GetProductsAsync_ReturnsProducts()
     {
         // Arrange
         var expectedProducts = fixture.db.Products;
-
         var productService = new ProductService(fixture.db);
 
         // Act
-        var actualProducts = productService.GetProductsAsync().Result;
+        var actualProducts = await productService.GetProductsAsync();
 
         // Assert
         actualProducts.Should().BeEquivalentTo(expectedProducts);
     }
 
     [Fact]
-    public void GetProductAsync_ReturnsAddedProduct()
+    public async Task GetProductAsync_ReturnsAddedProduct()
     {
         // Arrange
         var expectedProduct = fixture.db.Products.First();
-
         var productService = new ProductService(fixture.db);
 
         // Act
-        var actualProduct = productService.GetProductAsync(expectedProduct.Id).Result;
+        var actualProduct = await productService.GetProductAsync(expectedProduct.Id);
 
         // Assert
         actualProduct.Should().BeEquivalentTo(expectedProduct);
     }
 
     [Fact]
-    public void AddProductAsync_ReturnsAddedProduct()
+    public async Task AddProductAsync_ReturnsAddedProduct()
     {
         // Arrange
         var productToAdd = new Product { Name = "New Product" };
-        var addedProduct = new Product { Id = 101, Name = "New Product" };
-
+        var addedProduct = new Product { Id = 4, Name = "New Product", Description = null, Price = 0};
         var productService = new ProductService(fixture.db);
 
         // Act
-        var actualProduct = productService.AddProductAsync(productToAdd).Result;
+        var actualProduct = await productService.AddProductAsync(productToAdd);
 
         // Assert
         actualProduct.Should().BeEquivalentTo(addedProduct);

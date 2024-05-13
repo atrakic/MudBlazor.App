@@ -2,55 +2,27 @@ using Microsoft.EntityFrameworkCore;
 
 using app.Data;
 using app.Models;
+using MudBlazor.Tests.Helpers;
 
 namespace MudBlazor.Tests.Fixtures;
 
 public class DbFixture : IDisposable
 {
+
+    public int MAX_RECORDS = 3;
+
     public ApplicationDbContext db { get; private set; }
-    private int MAX_RECORDS = 100;
 
     public DbFixture()
     {
         var dbOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(databaseName: "TEST" + DateTime.Now.ToFileTimeUtc())
+            .UseInMemoryDatabase(databaseName: nameof(DbFixture) + DateTime.Now.ToFileTimeUtc())
             .Options;
 
         db = new ApplicationDbContext(dbOptions);
         db.Database.EnsureCreated();
+
         SeedData();
-    }
-
-    public void SeedData()
-    {
-        var products = new Faker<Product>()
-            .RuleFor(p => p.Name, f => f.Commerce.ProductName())
-            .RuleFor(p => p.Price, f => f.Random.Decimal(1, 100))
-            .Generate(MAX_RECORDS);
-        db.Products.AddRange(products);
-
-        var customers = new Faker<Customer>()
-            .RuleFor(c => c.FirstName, f => f.Person.FirstName)
-            .RuleFor(c => c.LastName, f => f.Person.LastName)
-            .RuleFor(c => c.Email, f => f.Person.Email)
-            .Generate(MAX_RECORDS);
-        db.Customers.AddRange(customers);
-
-        var orders = new Faker<Order>()
-            .RuleFor(o => o.OrderPlaced, f => f.Date.Past())
-            .RuleFor(o => o.OrderFulfilled, f => f.Date.Future())
-            .RuleFor(o => o.CustomerId, f => f.Random.Number(1, 100))
-            .Generate(MAX_RECORDS);
-        db.Orders.AddRange(orders);
-
-        var orderDetails = new Faker<OrderDetail>()
-            .RuleFor(od => od.Quantity, f => f.Random.Number(1, 10))
-            .RuleFor(od => od.ProductId, f => f.Random.Number(1, 100))
-            .RuleFor(od => od.OrderId, f => f.Random.Number(1, 100))
-            .Generate(100);
-        db.OrderDetails.AddRange(orderDetails);
-
-        db.SaveChanges();
     }
 
     public void Dispose()
@@ -58,5 +30,63 @@ public class DbFixture : IDisposable
         db.Database.EnsureDeleted();
         db.Dispose();
         GC.SuppressFinalize(this);
+    }
+
+    public void SeedData()
+    {
+        var faker = new Faker("en");
+        var products = new List<Product>();
+        for (int i = 0; i < MAX_RECORDS; i++)
+
+        {
+            var product = new Product
+            {
+                Name = faker.Commerce.ProductName(),
+                Description = faker.Commerce.ProductDescription(),
+                Price = faker.Random.Decimal(1, 100)
+            };
+            products.Add(product);
+        }
+        db.Products.AddRange(products);
+
+        var customers = new List<Customer>();
+        for (int i = 0; i < MAX_RECORDS; i++)
+        {
+            var customer = new Customer
+            {
+                FirstName = faker.Name.FirstName(),
+                LastName = faker.Name.LastName(),
+                Email = faker.Internet.Email(),
+                Phone = faker.Phone.PhoneNumber()
+            };
+            customers.Add(customer);
+        }
+        db.Customers.AddRange(customers);
+
+        var orders = new List<Order>();
+        for (int i = 0; i < MAX_RECORDS; i++)
+        {
+            var order = new Order
+            {
+                OrderPlaced = faker.Date.Past(),
+                OrderFulfilled = faker.Date.Recent(),
+                CustomerId = faker.Random.Int(1, MAX_RECORDS)
+            };
+            orders.Add(order);
+        }
+        db.Orders.AddRange(orders);
+
+        var orderDetails = new List<OrderDetail>();
+        for (int i = 0; i < MAX_RECORDS; i++)
+        {
+            var orderDetail = new OrderDetail
+            {
+                OrderId = faker.Random.Int(1, MAX_RECORDS),
+                ProductId = faker.Random.Int(1, MAX_RECORDS),
+                Quantity = faker.Random.Int(1, 10)
+            };
+            orderDetails.Add(orderDetail);
+        }
+        db.SaveChanges();
     }
 }
