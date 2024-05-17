@@ -22,6 +22,7 @@ jobs:
   docker-build:
 
     name: Docker Build
+    if: ${{ github.actor != 'dependabot[bot]' }}
     uses: dockersamples/.github/.github/workflows/reusable-docker-build.yaml@main
 
     permissions:

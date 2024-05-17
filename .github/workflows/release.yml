@@ -35,7 +35,7 @@ on:
 jobs:
   push_to_registry:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion != 'failure' }}
+    if: ${{ github.event.workflow_run.conclusion != 'failure' && github.actor != 'dependabot[bot]' }}
 
     steps:
       # Checkout latest or specific tag

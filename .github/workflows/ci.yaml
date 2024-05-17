@@ -16,6 +16,7 @@ jobs:
   ci:
     name: Build
     runs-on: ${{ matrix.os }}
+    if: ${{ github.actor != 'dependabot[bot]' }}
     strategy:
       matrix:
         os: [ubuntu-latest]
