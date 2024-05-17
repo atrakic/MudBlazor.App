@@ -68,4 +68,18 @@ public class ProductServiceTests : IClassFixture<DbFixture>
         // Assert
         actualProduct.Should().BeEquivalentTo(addedProduct);
     }
+
+    [Fact]
+    public async Task GetProductAsync_ThrowsException_WhenProductNotFound()
+    {
+        // Arrange
+        var productService = new ProductService(fixture.db);
+
+        // Act
+        Func<Task> act = async () => await productService.GetProductAsync(0);
+
+        // Assert
+        await act.Should().ThrowAsync<Exception>().WithMessage("Product not found");
+    }
+
 }
