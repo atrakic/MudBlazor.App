@@ -3,13 +3,14 @@
 # - DEPLOY_USERNAME=yourusername # see infra/main.bicep
 # - DEPLOY_KEY="ssh-rsa AAAAB..."
 # - LETSENCRYPT_EMAIL=mail@yourdomain.tld
-# - LETSENCRYPT_HOST=subdomain.yourdomain.tld
+# - LETSENCRYPT_HOST=demo-xxxx.northeurope.cloudapp.azure.com
+# - IMAGE_REPO=atrakic/mudblazor.app
+# - RELEASE_VERSION=latest
+# - MSSQL_SA_PASSWORD=foo123^14
 
 ## Optional secrets
 # - VIRTUAL_PORT
 # - HOST_DOMAIN
-# - IMAGE_REPO
-# - RELEASE_VERSION
 
 name: Release and deploy to Azure VM via SSH
 
