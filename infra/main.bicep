@@ -5,14 +5,21 @@ param vmName string = 'UbuntuVM'
 param adminUsername string = 'ubuntu'
 
 @description('VM size')
-param vmSize string = 'Standard_D2_v3'
+param vmSize string = 'Standard_D2s_v3'
 
-@description('The Ubuntu version for the VM. This will pick a fully patched image of this given Ubuntu version. Allowed values: 14.04-LTS,16.04-LTS,18.04-LTS,20.04-LTS.')
+@description('Security Type of the Virtual Machine.')
 @allowed([
-  '20.04-LTS'
-  '22.04-LTS'
+  'Standard'
+  'TrustedLaunch'
 ])
-param ubuntuOSVersion string = '20.04-LTS'
+param securityType string = 'TrustedLaunch'
+
+@description('The Ubuntu version for the VM. This will pick a fully patched image of this given Ubuntu version.')
+@allowed([
+  'Ubuntu-2004'
+  'Ubuntu-2204'
+])
+param ubuntuOSVersion string = 'Ubuntu-2204'
 
 @description('Location for all resources.')
 param location string = resourceGroup().location
@@ -21,20 +28,44 @@ param location string = resourceGroup().location
 @secure()
 param adminPasswordOrKey string
 
-var imagePublisher = 'Canonical'
-var imageOffer = 'UbuntuServer'
 var nicName = '${vmName}NetInt'
 var virtualNetworkName = 'vNet'
 var publicIPAddressName = '${vmName}PublicIP'
 var addressPrefix = '10.0.0.0/16'
-var subnet1Name = 'Subnet-1'
-var subnet1Prefix = '10.0.0.0/24'
+var subnetName = 'Subnet'
+var subnetAddressPrefix = '10.0.0.0/24'
 var networkSecurityGroupName = 'default-NSG'
+
+var securityProfileJson = {
+  uefiSettings: {
+    secureBootEnabled: true
+    vTpmEnabled: true
+  }
+  securityType: securityType
+}
+
+var cloudInit = loadFileAsBase64('cloud-init.yml')
+
+var osDiskType = 'Standard_LRS'
+var imageReference = {
+  'Ubuntu-2004': {
+    publisher: 'Canonical'
+    offer: '0001-com-ubuntu-server-focal'
+    sku: '20_04-lts-gen2'
+    version: 'latest'
+  }
+  'Ubuntu-2204': {
+    publisher: 'Canonical'
+    offer: '0001-com-ubuntu-server-jammy'
+    sku: '22_04-lts-gen2'
+    version: 'latest'
+  }
+}
+
 
 @description('Unique DNS Name for the Public IP used to access the Virtual Machine.')
 param dnsLabelPrefix string = toLower('${vmName}-${uniqueString(resourceGroup().id)}')
 
-var cloudInit = loadFileAsBase64('cloud-init.yml')
 
 resource publicIPAddress 'Microsoft.Network/publicIPAddresses@2023-09-01' = {
   name: publicIPAddressName
@@ -52,7 +83,7 @@ resource publicIPAddress 'Microsoft.Network/publicIPAddresses@2023-09-01' = {
   }
 }
 
-resource networkSecurityGroup 'Microsoft.Network/networkSecurityGroups@2023-05-01' = {
+resource networkSecurityGroup 'Microsoft.Network/networkSecurityGroups@2023-09-01' = {
   name: networkSecurityGroupName
   location: location
   properties: {
@@ -100,7 +131,7 @@ resource networkSecurityGroup 'Microsoft.Network/networkSecurityGroups@2023-05-0
   }
 }
 
-resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-05-01' = {
+resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-09-01' = {
   name: virtualNetworkName
   location: location
   properties: {
@@ -111,24 +142,18 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-05-01' = {
     }
     subnets: [
       {
-        name: subnet1Name
+        name: subnetName
         properties: {
-          addressPrefix: subnet1Prefix
-          networkSecurityGroup: {
-            id: networkSecurityGroup.id
-          }
+          addressPrefix: subnetAddressPrefix
+          privateEndpointNetworkPolicies: 'Enabled'
+          privateLinkServiceNetworkPolicies: 'Enabled'
         }
       }
     ]
   }
 }
 
-resource subnet 'Microsoft.Network/virtualNetworks/subnets@2023-05-01' existing = {
-  parent: virtualNetwork
-  name: subnet1Name
-}
-
-resource nic 'Microsoft.Network/networkInterfaces@2023-05-01' = {
+resource nic 'Microsoft.Network/networkInterfaces@2023-09-01' = {
   name: nicName
   location: location
   properties: {
@@ -136,25 +161,44 @@ resource nic 'Microsoft.Network/networkInterfaces@2023-05-01' = {
       {
         name: 'ipconfig1'
         properties: {
+          subnet: {
+            id: virtualNetwork.properties.subnets[0].id
+          }
           privateIPAllocationMethod: 'Dynamic'
           publicIPAddress: {
             id: publicIPAddress.id
           }
-          subnet: {
-            id: subnet.id
-          }
         }
       }
     ]
+    networkSecurityGroup: {
+      id: networkSecurityGroup.id
+    }
   }
 }
 
-resource vm 'Microsoft.Compute/virtualMachines@2023-07-01' = {
+resource vm 'Microsoft.Compute/virtualMachines@2023-09-01' = {
   name: vmName
   location: location
   properties: {
     hardwareProfile: {
       vmSize: vmSize
+    }
+    storageProfile: {
+      osDisk: {
+        createOption: 'FromImage'
+        managedDisk: {
+          storageAccountType: osDiskType
+        }
+      }
+      imageReference: imageReference[ubuntuOSVersion]
+    }
+    networkProfile: {
+      networkInterfaces: [
+        {
+          id: nic.id
+        }
+      ]
     }
     osProfile: {
       computerName: vmName
@@ -174,28 +218,10 @@ resource vm 'Microsoft.Compute/virtualMachines@2023-07-01' = {
         }
       }
     }
-    storageProfile: {
-      imageReference: {
-        publisher: imagePublisher
-        offer: imageOffer
-        sku: ubuntuOSVersion
-        version: 'latest'
-      }
-      osDisk: {
-        createOption: 'FromImage'
-      }
-    }
-    networkProfile: {
-      networkInterfaces: [
-        {
-          id: nic.id
-        }
-      ]
-    }
+    securityProfile: (securityType == 'TrustedLaunch') ? securityProfileJson : null
   }
 }
 
 output adminUsername string = adminUsername
-output publicIp string = publicIPAddress.properties.ipAddress
 output hostname string = publicIPAddress.properties.dnsSettings.fqdn
 output sshCommand string = 'ssh -i ~/.ssh/id_rsa ${adminUsername}@${publicIPAddress.properties.dnsSettings.fqdn}'
