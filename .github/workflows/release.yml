@@ -140,6 +140,10 @@ jobs:
           script: |
             cd ~/.deploy/${{ github.event.repository.name }}
             docker compose -f ./init.yml -f ./production.yml config
+            networkName=nginx
+            if [[ ! $(docker network ls | grep "${networkName}") ]]; then
+              docker network create "${networkName}"
+            fi
 
       - name: Run remote db migrations
         uses: appleboy/ssh-action@v1.0.3
