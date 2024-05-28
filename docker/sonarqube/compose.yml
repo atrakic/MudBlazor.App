@@ -1,0 +1,54 @@
+version: "3"
+
+services:
+  sonarqube:
+    image: sonarqube:lts-community
+    container_name: sonarqube
+    depends_on:
+      - db
+    environment:
+      SONAR_JDBC_URL: jdbc:postgresql://db:5432/sonar
+      SONAR_JDBC_USERNAME: sonar
+      SONAR_JDBC_PASSWORD: sonar
+    ports:
+      - "9000:9000"
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+
+  chpasswd:
+    image: curlimages/curl:${CURL_VERSION:-latest}
+    container_name: chpasswd
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        sleep 7
+        curl -s -u admin:admin -X POST \
+          "http://sonarqube:9000/api/users/change_password?login=admin&previousPassword=admin&password=$${SONARQUBE_PASS}"
+    environment:
+      - SONARQUBE_PASS=${SONARQUBE_PASS:-123}
+    depends_on:
+      sonarqube:
+        condition: service_started
+
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: sonar
+      POSTGRES_PASSWORD: sonar
+      POSTGRES_DB: sonar
+    volumes:
+      - sonar_db:/var/lib/postgresql
+      - sonar_db_data:/var/lib/postgresql/data
+
+volumes:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
+  sonar_db:
+  # https://gajus.com/blog/setting-up-postgre-sql-for-running-integration-tests
+  sonar_db_data:
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
