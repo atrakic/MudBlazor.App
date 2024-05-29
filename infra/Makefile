@@ -28,5 +28,8 @@ outputs:
 test:
 	curl -sL https://$(shell az deployment group show --name "main" --resource-group $(rgName) --query properties.outputs.hostname.value -o tsv)
 
+healthz:
+	curl -sL https://$(shell az deployment group show --name "main" --resource-group $(rgName) --query properties.outputs.hostname.value -o tsv)/healthz
+
 clean:
 	az group delete --name $(rgName)

@@ -1,6 +1,6 @@
 services:
   app:
-    image: ghcr.io/${IMAGE_REPO}:${RELEASE_VERSION}
+    image: ghcr.io/${IMAGE_REPO}:${RELEASE_VERSION:-latest}
     restart: always
     ports:
       - "8080"
@@ -10,10 +10,9 @@ services:
       ASPNETCORE_HTTP_PORTS: ${ASPNETCORE_HTTP_PORTS:-8080}
       MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
       #ConnectionStrings__DefaultConnection: "Server=db;Database=mydb;User Id=sa;Password=${MSSQL_SA_PASSWORD};"
-      VIRTUAL_HOST: ${VIRTUAL_HOST}
       VIRTUAL_PORT: ${VIRTUAL_PORT:-8080}
-      LETSENCRYPT_HOST: ${LETSENCRYPT_HOST}
-      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
+      VIRTUAL_HOST: ${VIRTUAL_HOST:-}
+      LETSENCRYPT_HOST: ${LETSENCRYPT_HOST:-}
     healthcheck:
       test: curl -sf -X 'GET' http://localhost:8080/healthz || exit 1
       interval: 10s
@@ -24,15 +23,13 @@ services:
       migrations:
         condition: service_completed_successfully
 
-  # Run migrations: (ensure src dir is rsynced to remote)
   migrations:
-    image: ghcr.io/atrakic/mudblazor.migrations:${RELEASE_VERSION}
+    image: ghcr.io/atrakic/mudblazor.migrations:${RELEASE_VERSION:-latest}
     restart: no
     container_name: migrations
     tty: true
     volumes:
-      #  - $PWD/src:/app:rw
-      - ../src:/app:rw
+      - $PWD/src:/app:rw
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
@@ -52,6 +49,7 @@ services:
   db:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: db
+    restart: no
     hostname: db
     environment:
       - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD}

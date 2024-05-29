@@ -1,16 +1,8 @@
-## Required secrets
-# - DEPLOY_HOST=
-# - DEPLOY_USERNAME=yourusername # see infra/main.bicep
-# - DEPLOY_KEY="ssh-rsa AAAAB..."
-# - LETSENCRYPT_EMAIL=mail@yourdomain.tld
-# - LETSENCRYPT_HOST=demo-xxxx.northeurope.cloudapp.azure.com
-# - IMAGE_REPO=atrakic/mudblazor.app
-# - RELEASE_VERSION=latest
-# - MSSQL_SA_PASSWORD=foo123^14
-
-## Optional secrets
-# - VIRTUAL_PORT
-# - HOST_DOMAIN
+## Required secrets:
+# DEPLOY_HOST
+# DEPLOY_USERNAME
+# DEPLOY_KEY
+# DEFAULT_EMAIL
 
 name: Release and deploy to Azure VM via SSH
 
@@ -101,8 +93,6 @@ jobs:
       - name: repository name fix and env
         run: |
           echo "image_repository_name=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-          echo "domain=${{ secrets.DEPLOY_HOST }}" >> $GITHUB_ENV
-          echo "letsencrypt_email=${{ secrets.LETSENCRYPT_EMAIL }}" >> $GITHUB_ENV
           echo "TAG_NAME=latest" >> $GITHUB_ENV
           if [ "${{ github.event.release.tag_name }}" != "" ]; then
             echo "TAG_NAME=${{ github.event.release.tag_name }}" >> $GITHUB_ENV
@@ -113,21 +103,21 @@ jobs:
 
       - name: Generate .env file before deployment
         run: |
-          echo "HOST_DOMAIN=${{ secrets.DEPLOY_HOST }}" >> .env
-          echo "IMAGE_REPO=${{ env.image_repository_name }}" >> .env
           echo "RELEASE_VERSION=${{ env.TAG_NAME }}" >> .env
+          echo "IMAGE_REPO=${{ env.image_repository_name }}" >> .env
+          echo "VIRTUAL_HOST=${{ secrets.DEPLOY_HOST }}" >> .env
           echo "LETSENCRYPT_HOST=${{ secrets.DEPLOY_HOST }}" >> .env
-          echo "LETSENCRYPT_EMAIL=${{ secrets.LETSENCRYPT_EMAIL }}" >> .env
+          echo "DEFAULT_EMAIL=${{ secrets.DEFAULT_EMAIL }}" >> .env
 
       # Copy docker-compose and .env files to target server
-      - name: copy files to target server via scp
+      - name: Copy files to target server via scp
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USERNAME }}
           port: 22
           key: ${{ secrets.DEPLOY_KEY }}
-          source: "./deploy/init.yml,./deploy/production.yml,./.env"
+          source: "./src,./deploy/init.yml,./deploy/production.yml,./.env"
           target: "~/.deploy/${{ github.event.repository.name }}/"
 
       - name: Verify remote docker-compose config before deployment
@@ -157,12 +147,12 @@ jobs:
           port: 22
           envs: APPTOKEN,USERNAME
           script: |
-            echo $APPTOKEN | docker login ghcr.io -u $USERNAME --password-stdin
+            #echo $APPTOKEN | docker login ghcr.io -u $USERNAME --password-stdin
             cd ~/.deploy/${{ github.event.repository.name }}
             docker compose -f ./init.yml -f ./production.yml pull --ignore-buildable
             docker compose -f ./init.yml -f ./production.yml up migrations
 
-      - name: remote docker-compose up via ssh
+      - name: Run remote docker-compose up via ssh
         uses: appleboy/ssh-action@v1.0.3
         env:
           APPTOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -174,7 +164,7 @@ jobs:
           port: 22
           envs: APPTOKEN,USERNAME
           script: |
-            echo $APPTOKEN | docker login ghcr.io -u $USERNAME --password-stdin
+            #echo $APPTOKEN | docker login ghcr.io -u $USERNAME --password-stdin
             cd ~/.deploy/${{ github.event.repository.name }}
             docker compose -f ./init.yml -f ./production.yml up --remove-orphans --no-color -d
             sleep 1

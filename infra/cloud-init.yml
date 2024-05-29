@@ -36,7 +36,8 @@ system_info:
     groups: adm, sudo, docker
 
 runcmd:
-  - curl -fsSL https://get.docker.com | sh
-  - docker pull -q nginxproxy/nginx-proxy
-  - docker pull -q nginxproxy/acme-companion
-  - docker pull -q nginxproxy/docker-gen
+  - |
+    curl -fsSL https://get.docker.com | sh
+    docker pull -q nginxproxy/nginx-proxy
+    docker pull -q nginxproxy/acme-companion
+    docker network create nginx

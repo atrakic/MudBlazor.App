@@ -1,4 +1,6 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+ARG NET_VERSION=8.0
+
+FROM mcr.microsoft.com/dotnet/sdk:${NET_VERSION} AS build
 WORKDIR /source
 
 # copy csproj and restore as distinct layers
@@ -10,7 +12,7 @@ COPY src/. .
 RUN dotnet publish --no-restore -o /app
 
 # https://github.com/dotnet/dotnet-docker/blob/main/samples/enable-globalization.md
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 as final
+FROM mcr.microsoft.com/dotnet/aspnet:${NET_VERSION} as final
 LABEL org.opencontainers.image.source="https://github.com/atrakic/MudBlazor.App.git"
 WORKDIR /app
 COPY --from=build /app .
