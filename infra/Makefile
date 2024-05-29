@@ -20,13 +20,13 @@ all:
 		--parameters location=$(location)
 
 status:
-	az resource list --resource-group $(rgName)
+	az resource list --resource-group $(rgName) --location $(location) --output table
 
 outputs:
-	az deployment group show --name $(rgName) --resource-group $(rgName) --query properties.outputs
+	az deployment group list --resource-group $(rgName) --query "[].properties.outputs"
 
 test:
-	curl -sL https://$(shell az deployment group show --name $(rgName) --resource-group $(rgName) --query properties.outputs.publicIp.value -o t)
+	curl -sL https://$(shell az deployment group show --name "main" --resource-group $(rgName) --query properties.outputs.hostname.value -o tsv)
 
 clean:
 	az group delete --name $(rgName)
