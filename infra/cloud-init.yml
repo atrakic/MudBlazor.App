@@ -37,3 +37,6 @@ system_info:
 
 runcmd:
   - curl -fsSL https://get.docker.com | sh
+  - docker pull -q nginxproxy/nginx-proxy
+  - docker pull -q nginxproxy/acme-companion
+  - docker pull -q nginxproxy/docker-gen
