@@ -24,10 +24,6 @@ param ubuntuOSVersion string = 'Ubuntu-2204'
 @description('Location for all resources.')
 param location string = resourceGroup().location
 
-
-@description('Email address for Let\'s Encrypt certificate.')
-param letsEncryptEmailAddress string = 'mail@yourdomain.tld'
-
 // SSH Key or password for the Virtual Machine. SSH key is recommended.
 @secure()
 param adminPasswordOrKey string
@@ -209,7 +205,7 @@ resource vm 'Microsoft.Compute/virtualMachines@2023-09-01' = {
       adminUsername: adminUsername
       adminPassword: adminPasswordOrKey
       // https://github.com/Azure/bicep/issues/471#issuecomment-866129085
-      customData: format(cloudInit, adminPasswordOrKey, letsEncryptEmailAddress)
+      customData: format(cloudInit, adminPasswordOrKey)
       linuxConfiguration: {
         disablePasswordAuthentication: true
         ssh: {
