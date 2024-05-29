@@ -166,6 +166,6 @@ jobs:
           script: |
             #echo $APPTOKEN | docker login ghcr.io -u $USERNAME --password-stdin
             cd ~/.deploy/${{ github.event.repository.name }}
-            docker compose -f ./init.yml -f ./production.yml up --remove-orphans --no-color -d
+            docker compose -f ./init.yml -f ./production.yml up --pull always --remove-orphans --no-color -d
             sleep 1
             docker compose -f ./init.yml -f ./production.yml ps -a
