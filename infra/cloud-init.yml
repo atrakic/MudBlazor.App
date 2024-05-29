@@ -36,7 +36,24 @@ system_info:
     groups: adm, sudo, docker
 
 runcmd:
-  - curl -fsSL https://get.docker.com | sh
-  - docker pull -q nginxproxy/nginx-proxy
-  - docker pull -q nginxproxy/acme-companion
-  - docker pull -q nginxproxy/docker-gen
+  - |
+    curl -fsSL https://get.docker.com | sh
+    docker pull -q nginxproxy/nginx-proxy:1.5
+    docker pull -q nginxproxy/acme-companion
+    docker pull -q nginxproxy/docker-gen
+    docker run --detach \
+      --name nginx-proxy \
+      --publish 80:80 \
+      --publish 443:443 \
+      --volume certs:/etc/nginx/certs \
+      --volume vhost:/etc/nginx/vhost.d \
+      --volume html:/usr/share/nginx/html \
+      --volume /var/run/docker.sock:/tmp/docker.sock:ro \
+      nginxproxy/nginx-proxy:1.5
+    docker run --detach \
+      --name nginx-proxy-acme \
+      --volumes-from nginx-proxy \
+      --volume /var/run/docker.sock:/var/run/docker.sock:ro \
+      --volume acme:/etc/acme.sh \
+      --env "DEFAULT_EMAIL=${1}" \
+      nginxproxy/acme-companion

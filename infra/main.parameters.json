@@ -13,6 +13,9 @@
     },
     "adminUsername": {
       "value": "${ADMIN-USERNAME}"
+    },
+    "letsEncryptEmailAddress": {
+      "value": "${LE-EMAIL}"
     }
   }
 }
