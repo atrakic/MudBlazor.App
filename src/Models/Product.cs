@@ -10,7 +10,7 @@ public class Product
     [Required]
     public string Name { get; set; } = null!;
 
-    //public string? Description { get; set; }
+    public string? Description { get; set; }
 
     [Required]
     [Column(TypeName = "decimal(6, 2)")]

@@ -21,11 +21,12 @@ else
     <HeaderContent>
         <MudTh>Product Name</MudTh>
         <MudTh>Price</MudTh>
-        <MudTh>Actions</MudTh>
+        <MudTh>Description</MudTh>
     </HeaderContent>
     <RowTemplate>
         <MudTd DataLabel="ProductName">@context.Name</MudTd>
         <MudTd DataLabel="Price">@context.Price</MudTd>
+        <MudTd DataLabel="Description">@context.Description</MudTd>
         <MudTd DataLabel="">
             <MudIconButton OnClick="@(() => Edit(context.Id))" Color="Color.Primary" Icon="@Icons.Material.Filled.Edit"
                 Size="Size.Small" IconSize="Size.Small" />
@@ -43,6 +44,8 @@ else
         </MudCardHeader>
         <MudCardContent>
             <MudTextField @bind-Value="product.Name" Label="Name" Variant="Variant.Text" Margin="Margin.Normal">
+            </MudTextField>
+            <MudTextField @bind-Value="product.Description" Label="Description" Variant="Variant.Text" Margin="Margin.Normal">
             </MudTextField>
             <MudTextField @bind-Value="product.Price" Label="Price" Variant="Variant.Text" Margin="Margin.Normal">
             </MudTextField>

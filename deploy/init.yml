@@ -12,12 +12,11 @@ services:
       - html:/usr/share/nginx/html
       - certs:/etc/nginx/certs:ro
       - /var/run/docker.sock:/tmp/docker.sock:ro
-    network_mode: bridge
 
   # docker exec nginx-proxy-acme /app/cert_status
   # docker exec nginx-proxy-acme /app/force_renew
   # docker exec nginx-proxy-acme cat /etc/nginx/conf.d/default.conf
-  letsencrypt:
+  nginx-proxy-acme:
     image: nginxproxy/acme-companion
     container_name: nginx-proxy-acme
     environment:
@@ -28,7 +27,6 @@ services:
       - certs:/etc/nginx/certs:rw
       - acme:/etc/acme.sh
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    network_mode: bridge
 
 networks:
   default:

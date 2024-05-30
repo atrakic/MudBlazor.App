@@ -11,17 +11,20 @@ services:
       MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
       #ConnectionStrings__DefaultConnection: "Server=db;Database=mydb;User Id=sa;Password=${MSSQL_SA_PASSWORD};"
       VIRTUAL_PORT: ${VIRTUAL_PORT:-8080}
-      VIRTUAL_HOST: ${VIRTUAL_HOST:-}
-      LETSENCRYPT_HOST: ${LETSENCRYPT_HOST:-}
+      VIRTUAL_HOST: ${VIRTUAL_HOST}
+      LETSENCRYPT_HOST: ${LETSENCRYPT_HOST}
     healthcheck:
       test: curl -sf -X 'GET' http://localhost:8080/healthz || exit 1
-      interval: 10s
+      interval: 5s
       timeout: 3s
-      retries: 10
-      start_period: 10s
+      retries: 5
+      start_period: 3s
     depends_on:
       migrations:
         condition: service_completed_successfully
+    networks:
+      - db
+      - default
 
   migrations:
     image: ghcr.io/atrakic/mudblazor.migrations:${RELEASE_VERSION:-latest}
@@ -45,6 +48,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - db
 
   db:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -61,8 +66,13 @@ services:
       timeout: 3s
       retries: 10
       start_period: 10s
+    networks:
+      - db
 
 networks:
+  db:
   default:
     external: true
     name: nginx
+
+## https://github.com/nginx-proxy/nginx-proxy/issues/1580
