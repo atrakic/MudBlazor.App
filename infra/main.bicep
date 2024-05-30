@@ -44,6 +44,12 @@ var securityProfileJson = {
   securityType: securityType
 }
 
+var extensionName = 'GuestAttestation'
+var extensionPublisher = 'Microsoft.Azure.Security.LinuxAttestation'
+var extensionVersion = '1.0'
+var maaTenantName = 'GuestAttestation'
+var maaEndpoint = substring('emptystring', 0, 0)
+
 var cloudInit = loadFileAsBase64('cloud-init.yml')
 
 var osDiskType = 'Standard_LRS'
@@ -219,6 +225,27 @@ resource vm 'Microsoft.Compute/virtualMachines@2023-09-01' = {
       }
     }
     securityProfile: (securityType == 'TrustedLaunch') ? securityProfileJson : null
+  }
+}
+
+resource vmExtension 'Microsoft.Compute/virtualMachines/extensions@2023-09-01' = if (securityType == 'TrustedLaunch' && securityProfileJson.uefiSettings.secureBootEnabled && securityProfileJson.uefiSettings.vTpmEnabled) {
+  parent: vm
+  name: extensionName
+  location: location
+  properties: {
+    publisher: extensionPublisher
+    type: extensionName
+    typeHandlerVersion: extensionVersion
+    autoUpgradeMinorVersion: true
+    enableAutomaticUpgrade: true
+    settings: {
+      AttestationConfig: {
+        MaaSettings: {
+          maaEndpoint: maaEndpoint
+          maaTenantName: maaTenantName
+        }
+      }
+    }
   }
 }
 
