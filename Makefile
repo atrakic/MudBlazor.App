@@ -1,37 +1,51 @@
 MAKEFLAGS += --silent
 
+OPTIONS ?= --build --remove-orphans --force-recreate
+
 APP ?= app
 
 all:
-	docker-compose up --no-color --remove-orphans -d
+	docker-compose up $(OPTIONS) -d
 
 %:
-	docker-compose up --build --no-color --remove-orphans $@ -d
+	docker-compose up $(OPTIONS) $@ -d
 	docker-compose ps -a
 
 healthcheck:
 	docker inspect $(APP) --format "{{ (index (.State.Health.Log) 0).Output }}"
 
-tools.local:
+docker-db:
+	docker-compose -f docker-compose.staging.yml up db -d
+
+docker-staging:
+	docker-compose -f docker-compose.staging.yml up $(OPTIONS)
+
+dotnet-tool-install:
 	dotnet --version
 	dotnet new tool-manifest --force
 	dotnet tool update --local dotnet-ef
+	dotnet tool install --global dotnet-outdated-tool
+	dotnet tool install --global dotnet-sonarscanner
 
-migrations.local:
-	dotnet ef migrations add $(NAME) --project ./src/app.csproj
+dotnet-migrations:
+	pushd ./src; \
+        if [ -z "$(TARGET)" ]; then \
+            dotnet ef migrations list --no-build; \
+            dotnet ef migrations has-pending-model-changes -- --environment Production; \
+        else \
+            dotnet ef migrations add $(TARGET); \
+            dotnet ef database update -- --environment Production; \
+        fi; \
+    popd
 
-dotnet-upgrade.local:
-	#dotnet tool install --global dotnet-outdated-tool
+dotnet-run: docker-db dotnet-migrations
+	dotnet run --environment Production --project src/app.csproj
+
+dotnet-upgrade:
 	dotnet outdated --upgrade
-
-docker-staging-up:
-	docker-compose -f docker-compose.staging.yml up --build --no-color --remove-orphans
 
 test:
 	dotnet test
-
-#testvolume:
-#	docker run --rm -i -v=shared-tmpfs:/var/tmp busybox find /var/tmp
 
 clean:
 	docker-compose down --remove-orphans -v --rmi local

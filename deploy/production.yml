@@ -2,14 +2,12 @@ services:
   app:
     image: ghcr.io/${IMAGE_REPO}:${RELEASE_VERSION:-latest}
     restart: always
-    ports:
-      - "8080"
     container_name: app
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_HTTP_PORTS: ${ASPNETCORE_HTTP_PORTS:-8080}
       MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
-      #ConnectionStrings__DefaultConnection: "Server=db;Database=mydb;User Id=sa;Password=${MSSQL_SA_PASSWORD};"
+      ConnectionStrings__Default: Server=db;Initial Catalog=MudBlazorApp;UID=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=true;
       VIRTUAL_PORT: ${VIRTUAL_PORT:-8080}
       VIRTUAL_HOST: ${VIRTUAL_HOST}
       LETSENCRYPT_HOST: ${LETSENCRYPT_HOST}
@@ -19,12 +17,14 @@ services:
       timeout: 3s
       retries: 5
       start_period: 3s
+    ports:
+      - 8080:8080
     depends_on:
       migrations:
         condition: service_completed_successfully
     networks:
       - db
-      - default
+      - proxy
 
   migrations:
     image: ghcr.io/atrakic/mudblazor.migrations:${RELEASE_VERSION:-latest}
@@ -36,7 +36,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
-      ##ConnectionStrings__DefaultConnection: "Server=db;Database=mydb;User Id=sa;Password=${MSSQL_SA_PASSWORD};"
+      ConnectionStrings__Default: Server=db;Initial Catalog=MudBlazorApp;UID=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=true;
     working_dir: /app
     entrypoint:
       - /bin/bash
@@ -71,7 +71,7 @@ services:
 
 networks:
   db:
-  default:
+  proxy:
     external: true
     name: nginx
 
