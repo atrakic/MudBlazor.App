@@ -7,11 +7,13 @@ docker compose -f ./init.yml -f ./production.yml pull --ignore-buildable
 
 ## Deploy
 docker compose -f ./init.yml -f ./production.yml up --pull always --remove-orphans --no-color -d
-# docker compose -f ./init.yml -f ./production.yml exec -T app python manage.py migrate --noinput
+# docker exec nginx-proxy-acme /app/force_renew
 
 ## Status
 docker exec nginx-proxy-acme /app/cert_status
 docker exec nginx-proxy-acme cat /etc/nginx/conf.d/default.conf
+
+docker compose -f init.yml -f production.yml top
 
 ## Clean up
 docker system prune -f

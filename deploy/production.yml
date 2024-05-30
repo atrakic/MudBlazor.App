@@ -32,7 +32,7 @@ services:
     container_name: migrations
     tty: true
     volumes:
-      - $PWD/src:/app:rw
+      - $PWD/../src:/app:rw
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
