@@ -20,8 +20,10 @@ services:
     ports:
       - 8080:8080
     depends_on:
-      migrations:
-        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+    #  migrations:
+    #    condition: service_completed_successfully
     networks:
       - db
       - proxy

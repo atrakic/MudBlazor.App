@@ -14,7 +14,7 @@ docker compose -f ./init.yml -f ./production.yml pull --ignore-buildable
 docker compose -f ./init.yml -f ./production.yml up migrations
 
 ## Deploy
-docker compose -f ./init.yml -f ./production.yml up --remove-orphans --no-color -d
+docker compose -f ./init.yml -f ./production.yml up app --remove-orphans --no-color -d
 # docker exec nginx-proxy-acme /app/force_renew
 
 ## Status
