@@ -1,11 +1,11 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using MudBlazor.Services;
-
+﻿using app.Components;
 using app.Data;
 using app.Models;
 using app.Services;
-using app.Components;
+using app.Utilities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +34,14 @@ builder.Services.AddHealthChecks();
 builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<SumService>();
 builder.Services.AddScoped<HelloService>();
+
+// Create a service to expose ActivitySource, and Metric Instruments
+// for manual instrumentation
+builder.Services.AddSingleton<Instrumentation>();
+
+// TODO
+// Configure OpenTelemetry tracing & metrics with auto-start using the
+// AddOpenTelemetry extension from OpenTelemetry.Extensions.Hosting
 
 var app = builder.Build();
 

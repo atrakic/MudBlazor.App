@@ -1,0 +1,11 @@
+steps:
+  - task: AdvancedSecurity-Codeql-Init@1
+    inputs:
+      languages: "csharp"
+      # Supported languages: csharp, cpp, go, java, javascript, python, ruby, swift
+
+  - task: AdvancedSecurity-Codeql-Autobuild@1
+
+  - task: AdvancedSecurity-Dependency-Scanning@1 # More details on this task: https://learn.microsoft.com/en-us/azure/devops/pipelines/tasks/reference/advanced-security-dependency-scanning-v1?view=azure-pipelines
+
+  - task: AdvancedSecurity-Codeql-Analyze@1 # More details on this task: https://learn.microsoft.com/en-us/azure/devops/pipelines/tasks/reference/advanced-security-codeql-analyze-v1?view=azure-pipelines

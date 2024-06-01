@@ -11,6 +11,7 @@ services:
       VIRTUAL_PORT: ${VIRTUAL_PORT:-8080}
       VIRTUAL_HOST: ${VIRTUAL_HOST}
       LETSENCRYPT_HOST: ${LETSENCRYPT_HOST}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
     healthcheck:
       test: curl -sf -X 'GET' http://localhost:8080/healthz || exit 1
       interval: 5s
