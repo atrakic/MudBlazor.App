@@ -2,10 +2,8 @@ global:
   scrape_interval: 15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
   evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
 
-scrape_configs:
-  - job_name: 'otel'
-    static_configs:
-      - targets: [ 'otel-collector:9201' ]
+## The individual scrape configurations can be found in the targets/ directory.
+scrape_config_files: [ '/etc/prometheus/targets/*.yaml' ]
 
 #  - job_name: "prometheus"
 #    static_configs:

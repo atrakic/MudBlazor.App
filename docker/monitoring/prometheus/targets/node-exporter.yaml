@@ -1,0 +1,8 @@
+scrape_configs:
+  - job_name: 'node-exporter'
+
+    # Override the global default and scrape targets from this job every 15 seconds.
+    scrape_interval: 15s
+
+    static_configs:
+      - targets: [ 'node-exporter:9100' ]

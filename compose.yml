@@ -5,7 +5,7 @@ services:
   app:
     build:
       context: .
-    restart: always
+    restart: unless-stopped
     container_name: app
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
@@ -27,9 +27,9 @@ services:
       timeout: 3s
       retries: 5
       start_period: 5s
-    ports:
-      - 8000:8000
-      - 8443:8443
+    expose:
+      - "${ASPNETCORE_HTTP_PORT:-8000}"
+      - "${ASPNETCORE_HTTPS_PORT:-8443}"
     depends_on:
       migrations:
         condition: service_completed_successfully

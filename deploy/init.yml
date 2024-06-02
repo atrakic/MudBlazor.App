@@ -2,7 +2,6 @@ services:
   nginx-proxy:
     image: nginxproxy/nginx-proxy:1.4
     container_name: nginx-proxy
-    restart: always
     ports:
       - "80:80"
       - "443:443"
@@ -17,7 +16,7 @@ services:
     image: nginxproxy/acme-companion
     container_name: nginx-proxy-acme
     environment:
-      - DEFAULT_EMAIL=${DEFAULT_EMAIL}
+      - DEFAULT_EMAIL=${DEFAULT_EMAIL:-mail@yourdomain.tld}
     volumes_from:
       - nginx-proxy
     volumes:
