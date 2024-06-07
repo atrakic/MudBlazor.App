@@ -251,4 +251,5 @@ resource vmExtension 'Microsoft.Compute/virtualMachines/extensions@2023-09-01' =
 
 output adminUsername string = adminUsername
 output hostname string = publicIPAddress.properties.dnsSettings.fqdn
+output vmPublicIPAddress string = publicIPAddress.properties.ipAddress
 output sshCommand string = 'ssh -i ~/.ssh/id_rsa ${adminUsername}@${publicIPAddress.properties.dnsSettings.fqdn}'
