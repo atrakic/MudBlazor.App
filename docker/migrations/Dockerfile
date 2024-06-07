@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0
 LABEL org.opencontainers.image.description="dotnet image with ef core tools installed"
 WORKDIR /app
 

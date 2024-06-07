@@ -14,11 +14,8 @@ all:
 healthcheck:
 	docker inspect $(APP) --format "{{ (index (.State.Health.Log) 0).Output }}"
 
-docker-db:
-	docker-compose -f docker-compose.staging.yml up db -d
-
-docker-staging:
-	docker-compose -f docker-compose.staging.yml up $(OPTIONS)
+docker-devel:
+	docker-compose -f docker-compose.devel.yml up $(OPTIONS)
 
 dotnet-tool-install:
 	dotnet --version
