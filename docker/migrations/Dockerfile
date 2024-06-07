@@ -1,6 +1,5 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0
-LABEL org.opencontainers.image.source="https://github.com/atrakic/MudBlazor.App.git"
-
+LABEL org.opencontainers.image.description="dotnet image with ef core tools installed"
 WORKDIR /app
 
 RUN set -x \

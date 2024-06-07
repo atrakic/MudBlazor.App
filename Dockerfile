@@ -15,7 +15,7 @@ RUN dotnet publish --no-restore -o /app
 
 # https://github.com/dotnet/dotnet-docker/blob/main/samples/enable-globalization.md
 FROM mcr.microsoft.com/dotnet/aspnet:${NET_VERSION} as final
-LABEL org.opencontainers.image.source="https://github.com/atrakic/MudBlazor.App.git"
+LABEL org.opencontainers.image.description="MudBlazor app demo"
 WORKDIR /app
 COPY --from=build /app .
 
