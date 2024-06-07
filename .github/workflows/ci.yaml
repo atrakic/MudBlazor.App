@@ -1,8 +1,13 @@
 name: ci
 
 on:
-  push:
   workflow_dispatch:
+  push:
+    paths:
+      - '**.cs'
+      - '**.csproj'
+      - '**.sln'
+      - ".github/workflows/ci.yaml"
   pull_request:
     branches: [ main ]
     paths:
