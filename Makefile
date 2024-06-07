@@ -41,7 +41,9 @@ dotnet-migrations:
 dotnet-run: docker-db dotnet-migrations
 	dotnet run --environment Production --project src/app.csproj
 
+
 dotnet-upgrade:
+	dotnet tool restore
 	dotnet outdated --upgrade
 
 test:

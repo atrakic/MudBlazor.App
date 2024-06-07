@@ -5,6 +5,7 @@
 
 .env
 .sonarqube/*
+Brewfile.lock.json*
 *.db
 
 # dotenv files

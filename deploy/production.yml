@@ -1,6 +1,6 @@
 services:
   app:
-    image: ghcr.io/${IMAGE_REPO}:${RELEASE_VERSION:-latest}
+    image: ghcr.io/${IMAGE}:${VERSION:-latest}
     restart: always
     container_name: app
     environment:
@@ -30,7 +30,7 @@ services:
       - proxy
 
   migrations:
-    image: ghcr.io/atrakic/mudblazor.migrations:${RELEASE_VERSION:-latest}
+    image: ghcr.io/atrakic/mudblazor.migrations:${VERSION:-latest}
     restart: no
     container_name: migrations
     tty: true

@@ -1,16 +1,10 @@
-# Docker compose file for running the app and migrations for development environment.
-# Db migrations are run in a separate container.
-
 services:
   app:
     build:
       context: .
-    restart: unless-stopped
+    image: ${IMAGE_REPO:-atrakic/mudblazor-app}:${RELEASE_VERSION:-latest}
     container_name: app
-    environment:
-      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
-      - ASPNETCORE_HTTPS_PORT=https://+:${ASPNETCORE_HTTPS_PORT:-8443}
-      - ASPNETCORE_URLS=http://+:${ASPNETCORE_HTTP_PORTS:-8000}
+    restart: always
     develop:
       watch:
         - action: sync
@@ -19,34 +13,38 @@ services:
         - action: rebuild
           path: src
           target: /app
-    volumes:
-      - ./docker/healthchecks:/healthchecks
+    environment:
+      #ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_HTTP_PORTS: "8080"
+      MSSQL_SA_PASSWORD: Strong=Passw0rd
+      ConnectionStrings__Default: Server=db;Initial Catalog=MudBlazorApp;UID=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=true;Connection Timeout=3;
     healthcheck:
-      test: /healthchecks/curl.sh
-      interval: 5s
+      test:
+        - CMD-SHELL
+        - curl -sf -X 'GET' http://localhost:8080/healthz || exit 1
       timeout: 3s
+      interval: 5s
       retries: 5
-      start_period: 5s
-    expose:
-      - "${ASPNETCORE_HTTP_PORT:-8000}"
-      - "${ASPNETCORE_HTTPS_PORT:-8443}"
+      start_period: 3s
+    ports:
+      - ${ASPNETCORE_HTTP_PORTS:-8080}:8080
     depends_on:
       migrations:
         condition: service_completed_successfully
+        required: true
 
   migrations:
-    build: ./docker/migrations
-    container_name: migrations
-    tty: true
+    image: ghcr.io/atrakic/mudblazor.migrations:latest
     restart: no
+    tty: true
+    container_name: migrations
+    working_dir: /app
     environment:
-      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
-      - ConnectionStrings__Default=Data Source=/tmp/mydb.db
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__Default: Server=db;Initial Catalog=MudBlazorApp;UID=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=true;Connection Timeout=3;
+      MSSQL_SA_PASSWORD: Strong=Passw0rd
     volumes:
       - $PWD/src:/app:rw
-      ## Optional: example of mounting appsettings.json
-      #- $PWD/src/appsettings.json:/app/appsettings.json:ro
-      #- $PWD/src/Migrations:/app/Migrations:rw
     entrypoint:
       - /bin/bash
       - -c
@@ -54,3 +52,27 @@ services:
         set -exo pipefail
         dotnet ef database update --context ApplicationDbContext --verbose
         dotnet ef migrations list --no-build --context ApplicationDbContext --verbose
+    depends_on:
+      db:
+        condition: service_healthy
+        required: true
+
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    restart: no
+    container_name: db
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_AGENT_ENABLED: "true"
+      MSSQL_SA_PASSWORD: Strong=Passw0rd
+    ports:
+      - "1433:1433"
+    hostname: db
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "Strong=Passw0rd" -Q "SELECT getdate()" -b
+      timeout: 3s
+      interval: 10s
+      retries: 10
+      start_period: 10s

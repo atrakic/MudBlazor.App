@@ -21,23 +21,23 @@ jobs:
     if: ${{ github.actor != 'dependabot[bot]' }}
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest,windows-latest]
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
+      - uses: actions/checkout@v4
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
-    - name: Install dependencies
-      run: dotnet restore
+      - name: Install dependencies
+        run: dotnet restore
 
-    - name: Build
-      run: dotnet build --configuration Release --no-restore
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
 
-    - name: Test
-      run: dotnet test --no-restore --verbosity normal
+      - name: Test
+        run: dotnet test --no-restore --verbosity normal
 
   docker-build:
     needs: [ci]
@@ -82,6 +82,8 @@ jobs:
       ### platforms to build for
       ### defaults to linux/amd64
       ### other options: linux/amd64,linux/arm64,linux/arm/v7
+      # FIXME: https://github.com/atrakic/MudBlazor.App/actions/runs/9414458507/job/25933446867
+      # platforms: linux/amd64,linux/arm64
 
       ### Create a PR comment with image tags and labels
       ### defaults to true

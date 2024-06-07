@@ -2,13 +2,13 @@
 # DEPLOY_HOST
 # DEPLOY_USERNAME
 # DEPLOY_KEY
-# DEFAULT_EMAIL
 
 name: Release and deploy to Azure VM via SSH
 
 permissions:
   packages: write
   contents: write
+
 on:
   release:
     types: [published]
@@ -26,56 +26,8 @@ on:
         required: true
 
 jobs:
-  push_to_registry:
-    runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion != 'failure' && github.actor != 'dependabot[bot]' }}
-
-    steps:
-      # Checkout latest or specific tag
-      - name: checkout
-        if: ${{ github.event.inputs.version == '' || github.event.inputs.version == 'latest' }}
-        uses: actions/checkout@v4
-
-      - name: checkout tag
-        if: ${{ github.event.inputs.version != '' && github.event.inputs.version != 'latest' }}
-        uses: actions/checkout@v4
-        with:
-          ref: refs/tags/${{ github.event.inputs.version }}
-
-      # Assign environment variables used in subsequent steps
-      - name: Env variable assignment
-        run: echo "image_repository_name=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-
-      # TAG_NAME defaults to 'latest' if not a release or manual deployment
-      - name: Assign version
-        run: |
-          echo "TAG_NAME=latest" >> $GITHUB_ENV
-          if [ "${{ github.event.release.tag_name }}" != "" ]; then
-            echo "TAG_NAME=${{ github.event.release.tag_name }}" >> $GITHUB_ENV
-          fi;
-          if [ "${{ github.event.inputs.version }}" != "" ]; then
-            echo "TAG_NAME=${{ github.event.inputs.version }}" >> $GITHUB_ENV
-          fi;
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      # Build and push new docker image, skip for manual redeploy other than 'latest'
-      - name: Build and push Docker images
-        uses: docker/build-push-action@v5
-        if: ${{ github.event.inputs.version == '' || github.event.inputs.version == 'latest' }}
-        with:
-          file: Dockerfile
-          context: .
-          push: true
-          tags: ghcr.io/${{ env.image_repository_name }}:${{ env.TAG_NAME }}
-
   deploy_via_ssh:
-    needs: push_to_registry
+    #needs: push_to_registry
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion != 'failure' }}
     steps:
@@ -103,13 +55,12 @@ jobs:
 
       - name: Generate .env file before deployment
         run: |
-          echo "RELEASE_VERSION=${{ env.TAG_NAME }}" >> .env
-          echo "IMAGE_REPO=${{ env.image_repository_name }}" >> .env
+          echo "VERSION=${{ env.TAG_NAME }}" >> .env
+          echo "IMAGE=ghcr.io/${{ env.image_repository_name }}" >> .env
           echo "VIRTUAL_HOST=${{ secrets.DEPLOY_HOST }}" >> .env
           echo "LETSENCRYPT_HOST=${{ secrets.DEPLOY_HOST }}" >> .env
           echo "DEFAULT_EMAIL=${{ secrets.DEFAULT_EMAIL }}" >> .env
 
-      # Copy docker-compose and .env files to target server
       - name: Copy files to target server via scp
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -169,3 +120,9 @@ jobs:
             docker compose -f ./init.yml -f ./production.yml up --remove-orphans --no-color -d
             sleep 1
             docker compose -f ./init.yml -f ./production.yml ps -a
+            docker compose -f ./init.yml -f ./production.yml top
+            docker compose -f ./init.yml -f ./production.yml stats --no-stream
+
+      - name: Cleanup workspace
+        run: |
+          rm -f .env

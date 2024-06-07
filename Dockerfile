@@ -1,5 +1,7 @@
 ARG NET_VERSION=8.0
 
+# https://mcr.microsoft.com/product/dotnet/sdk
+# https://mcr.microsoft.com/v2/dotnet/sdk/tags/list
 FROM mcr.microsoft.com/dotnet/sdk:${NET_VERSION} AS build
 WORKDIR /source
 
