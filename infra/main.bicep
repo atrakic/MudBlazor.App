@@ -1,3 +1,8 @@
+@minLength(1)
+@maxLength(64)
+@description('Name of the environment that can be used as part of naming resource convention')
+param environmentName string = 'dev'
+
 @description('VM name')
 param vmName string = 'UbuntuVM'
 
@@ -68,14 +73,17 @@ var imageReference = {
   }
 }
 
+var tags = {
+  'env-name': environmentName
+}
 
 @description('Unique DNS Name for the Public IP used to access the Virtual Machine.')
 param dnsLabelPrefix string = toLower('${vmName}-${uniqueString(resourceGroup().id)}')
 
-
 resource publicIPAddress 'Microsoft.Network/publicIPAddresses@2023-09-01' = {
   name: publicIPAddressName
   location: location
+  tags: tags
   sku: {
     name: 'Basic'
   }
@@ -92,6 +100,7 @@ resource publicIPAddress 'Microsoft.Network/publicIPAddresses@2023-09-01' = {
 resource networkSecurityGroup 'Microsoft.Network/networkSecurityGroups@2023-09-01' = {
   name: networkSecurityGroupName
   location: location
+  tags: tags
   properties: {
     securityRules: [
       {
@@ -140,6 +149,7 @@ resource networkSecurityGroup 'Microsoft.Network/networkSecurityGroups@2023-09-0
 resource virtualNetwork 'Microsoft.Network/virtualNetworks@2023-09-01' = {
   name: virtualNetworkName
   location: location
+  tags: tags
   properties: {
     addressSpace: {
       addressPrefixes: [
@@ -186,6 +196,7 @@ resource nic 'Microsoft.Network/networkInterfaces@2023-09-01' = {
 resource vm 'Microsoft.Compute/virtualMachines@2023-09-01' = {
   name: vmName
   location: location
+  tags: tags
   properties: {
     hardwareProfile: {
       vmSize: vmSize

@@ -1,0 +1,65 @@
+# To configure this workflow:
+#
+# 1. Set the following secrets in your repository
+# (instructions for getting these can be found at https://docs.microsoft.com/en-us/azure/developer/github/connect-from-azure?tabs=azure-cli%2Clinux):
+#    - AZURE_CLIENT_ID
+#    - AZURE_TENANT_ID
+#    - AZURE_SUBSCRIPTION_ID
+#    - AZURE_ADMIN_PASSORD_OR_KEY (deployment key for your vm)
+
+name: Azure infrastructure
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  LOCATION: "northeurope"
+  VM_NAME: "mudblazor-vm"
+  ADMIN_USERNAME: "ghdeploy"
+  AZURE_ADMIN_PASSORD_OR_KEY: ${{ secrets.AZURE_ADMIN_PASSORD_OR_KEY }}
+
+jobs:
+  azure-infra:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Azure login (as early as possible to deployment timeouts)
+        uses: azure/login@v1.4.6
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
+      - name: Install dependencies
+        run: |
+          cd infra
+          brew bundle
+
+      - name: Lint bicep
+        run: |
+          cd infra
+          make lint
+
+      - name: Deploy with make parameters
+        run: |
+          cd infra
+          make location=${{ env.LOCATION }} \
+              vmName=${{ env.VM_NAME }} \
+              adminPasswordOrKey=${{ env.AZURE_ADMIN_PASSORD_OR_KEY }} \
+              adminUsername=${{ env.ADMIN_USERNAME }}
+
+      - name: Status
+        run: |
+          cd infra
+          make status

@@ -25,6 +25,9 @@ status:
 outputs:
 	az deployment group list --resource-group $(rgName) --query "[].properties.outputs"
 
+lint:
+	bicep lint main.bicep
+
 test:
 	curl -sL https://$(shell az deployment group show --name "main" --resource-group $(rgName) --query properties.outputs.hostname.value -o tsv)
 
