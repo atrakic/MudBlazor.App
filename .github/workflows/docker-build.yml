@@ -9,6 +9,7 @@ on:
     workflows: ["ci"]
     types: [completed]
 
+jobs:
   docker-build:
     name: Docker Build
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
