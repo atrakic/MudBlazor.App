@@ -24,19 +24,16 @@ public class DbFixture : IDisposable
         SeedData();
     }
 
-    public void Dispose()
-    {
-        db.Database.EnsureDeleted();
-        db.Dispose();
-        GC.SuppressFinalize(this);
-    }
-
     public void SeedData()
     {
         var faker = new Faker("en");
-        var products = new List<Product>();
-        for (int i = 0; i < MAX_RECORDS; i++)
 
+        var products = new List<Product>();
+        var customers = new List<Customer>();
+        var orders = new List<Order>();
+        var orderDetails = new List<OrderDetail>();
+
+        for (int i = 0; i < MAX_RECORDS; i++)
         {
             var product = new Product
             {
@@ -45,12 +42,7 @@ public class DbFixture : IDisposable
                 Price = faker.Random.Decimal(1, 100)
             };
             products.Add(product);
-        }
-        db.Products.AddRange(products);
 
-        var customers = new List<Customer>();
-        for (int i = 0; i < MAX_RECORDS; i++)
-        {
             var customer = new Customer
             {
                 FirstName = faker.Name.FirstName(),
@@ -59,12 +51,7 @@ public class DbFixture : IDisposable
                 Phone = faker.Phone.PhoneNumber()
             };
             customers.Add(customer);
-        }
-        db.Customers.AddRange(customers);
 
-        var orders = new List<Order>();
-        for (int i = 0; i < MAX_RECORDS; i++)
-        {
             var order = new Order
             {
                 OrderPlaced = faker.Date.Past(),
@@ -72,12 +59,7 @@ public class DbFixture : IDisposable
                 CustomerId = faker.Random.Int(1, MAX_RECORDS)
             };
             orders.Add(order);
-        }
-        db.Orders.AddRange(orders);
 
-        var orderDetails = new List<OrderDetail>();
-        for (int i = 0; i < MAX_RECORDS; i++)
-        {
             var orderDetail = new OrderDetail
             {
                 OrderId = faker.Random.Int(1, MAX_RECORDS),
@@ -86,6 +68,17 @@ public class DbFixture : IDisposable
             };
             orderDetails.Add(orderDetail);
         }
+        db.Products.AddRange(products);
+        db.Customers.AddRange(customers);
+        db.Orders.AddRange(orders);
+        db.OrderDetails.AddRange(orderDetails);
         db.SaveChanges();
+    }
+
+    public void Dispose()
+    {
+        db.Database.EnsureDeleted();
+        db.Dispose();
+        GC.SuppressFinalize(this);
     }
 }
