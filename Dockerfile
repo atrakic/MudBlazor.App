@@ -21,6 +21,9 @@ RUN set -x \
     && apt-get install --no-install-recommends --no-install-suggests -y curl \
     && apt-get remove --purge --auto-remove -y && rm -rf /var/lib/apt/lists/*
 
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl--fail http://localhost:8080/healthz || exit 1
+
 EXPOSE 8080
 WORKDIR /app
 

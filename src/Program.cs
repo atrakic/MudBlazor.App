@@ -1,11 +1,11 @@
-﻿using app.Components;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using MudBlazor.Services;
+using app.Components;
 using app.Data;
 using app.Models;
 using app.Services;
 using app.Utilities;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,7 +30,6 @@ builder.Services.AddRazorComponents()
 builder.Services.AddMudServices();
 builder.Services.AddHealthChecks();
 
-// Register our own injectables
 builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<SumService>();
 builder.Services.AddScoped<HelloService>();
@@ -67,4 +66,5 @@ app.UseAntiforgery();
 app.MapHealthChecks("/healthz");
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+app.Logger.LogInformation("Starting the app");
 app.Run();

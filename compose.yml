@@ -2,7 +2,7 @@ services:
   app:
     build:
       context: .
-    image: ${IMAGE_REPO:-atrakic/mudblazor-app}:${RELEASE_VERSION:-latest}
+    image: ${IMAGE_REPO:-ghcr.io}/atrakic/mudblazor.app:${RELEASE_VERSION:-latest}
     container_name: app
     restart: always
     develop:
@@ -14,7 +14,7 @@ services:
           path: src
           target: /app
     environment:
-      #ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_HTTP_PORTS: "8080"
       MSSQL_SA_PASSWORD: Strong=Passw0rd
       ConnectionStrings__Default: Server=db;Initial Catalog=MudBlazorApp;UID=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=true;Connection Timeout=3;
@@ -27,15 +27,17 @@ services:
       retries: 5
       start_period: 3s
     ports:
-      - ${ASPNETCORE_HTTP_PORTS:-8080}:8080
+      - "${ASPNETCORE_HTTP_PORTS:-8080}:8080"
     depends_on:
       migrations:
-        condition: service_completed_successfully
+        #condition: service_completed_successfully
+        condition: service_started
         required: true
 
   migrations:
-    image: ghcr.io/atrakic/mudblazor.migrations:latest
-    restart: no
+    build:
+      context: ./docker/migrations
+    image: ${IMAGE_REPO:-ghcr.io}/atrakic/mudblazor.migrations:${RELEASE_VERSION:-latest}
     tty: true
     container_name: migrations
     working_dir: /app
@@ -50,20 +52,21 @@ services:
       - -c
       - |
         set -exo pipefail
-        dotnet ef database update --context ApplicationDbContext --verbose
+        # dotnet ef dbcontext info --context ApplicationDbContext --verbose
+        # dotnet ef database update --context ApplicationDbContext --verbose
         dotnet ef migrations list --no-build --context ApplicationDbContext --verbose
+        tail -f /dev/null
     depends_on:
       db:
         condition: service_healthy
         required: true
 
+  # https://hub.docker.com/r/microsoft/mssql-server
   db:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    restart: no
+    image: mcr.microsoft.com/mssql/server:2022-CU12-ubuntu-22.04
     container_name: db
     environment:
       ACCEPT_EULA: "Y"
-      MSSQL_AGENT_ENABLED: "true"
       MSSQL_SA_PASSWORD: Strong=Passw0rd
     ports:
       - "1433:1433"
