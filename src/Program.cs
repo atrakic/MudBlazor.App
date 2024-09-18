@@ -15,15 +15,36 @@ using app.Utilities;
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
 
+var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+var isDevelopment = builder.Environment.IsDevelopment() || environment.Equals("Development", StringComparison.OrdinalIgnoreCase);
+
 // Add services to the container.
+if (isDevelopment)
+{
+    services.AddSingleton<DbConnection>(container =>
+    {
+        var connection = new SqliteConnection("Data Source=InMemorySample;Mode=Memory;Cache=Shared");
+        Console.WriteLine("Using ConnectionString: " + connection.ConnectionString);
+        connection.Open();
+        return connection;
+    });
 
-var connectionString = builder.Configuration.GetConnectionString("Default")
-    ?? throw new InvalidOperationException("Connection string not found.");
+    services.AddDbContext<ApplicationDbContext>((container, options) =>
+    {
+        var connection = container.GetRequiredService<DbConnection>();
+        options.UseSqlite(connection);
+    });
 
-services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));
-services.AddDatabaseDeveloperPageExceptionFilter();
-
-Console.WriteLine("Using ConnectionString: " + connectionString);
+    ApplicationDbContext.IsSqlServer = false;
+}
+else
+{
+    var connectionString = builder.Configuration.GetConnectionString("Default")
+        ?? throw new InvalidOperationException("Connection string not found.");
+    services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));
+    services.AddDatabaseDeveloperPageExceptionFilter();
+    Console.WriteLine("Using ConnectionString: " + connectionString);
+}
 
 services.AddRazorComponents().AddInteractiveServerComponents();
 services.AddMudServices();
@@ -45,13 +66,11 @@ services.AddSingleton<Instrumentation>();
 var app = builder.Build();
 
 using var scope = app.Services.CreateScope();
-InitializeDatabase(scope);
+InitializeDatabase(scope.ServiceProvider);
 
-void InitializeDatabase(IServiceScope scope)
+void InitializeDatabase(IServiceProvider serviceProvider)
 {
-    var serviceProvider = scope.ServiceProvider;
     var context = serviceProvider.GetRequiredService<ApplicationDbContext>();
-
     context.Database.EnsureCreated();
     SeedData.Initialize(context);
 }
@@ -66,7 +85,6 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-//app.UseAuthorization();
 app.UseAntiforgery();
 app.MapHealthChecks("/healthz");
 app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
