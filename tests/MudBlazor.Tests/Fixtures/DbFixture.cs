@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 
-using app.Data;
-using app.Models;
+using app.Infrastructure;
+using app.Core.Model;
 
 namespace MudBlazor.Tests.Fixtures;
 

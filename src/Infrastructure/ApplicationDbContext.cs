@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
-using app.Models;
+using app.Core.Model;
 
-namespace app.Data;
+namespace app.Infrastructure;
 
 public class ApplicationDbContext : DbContext
 {
@@ -23,20 +23,4 @@ public class ApplicationDbContext : DbContext
     public DbSet<Order> Orders { get; set; } = null!;
     public DbSet<Product> Products { get; set; } = null!;
     public DbSet<OrderDetail> OrderDetails { get; set; } = null!;
-
-    /**
-    // Dispose pattern.
-    public override void Dispose()
-    {
-        Debug.WriteLine($"{ContextId} context disposed.");
-        base.Dispose();
-    }
-
-    // Dispose pattern.
-    public override ValueTask DisposeAsync()
-    {
-        Debug.WriteLine($"{ContextId} context disposed async.");
-        return base.DisposeAsync();
-    }
-    */
 }

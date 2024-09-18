@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Configuration;
 
 using app.Services;
-using app.Models;
+using app.Core.Model;
 
 using MudBlazor.Tests.Fixtures;
 

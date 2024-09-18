@@ -1,9 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using MudBlazor.Services;
+
 using app.Components;
-using app.Data;
-using app.Models;
+using app.Infrastructure;
+
+using app.Core.Model;
 using app.Services;
 using app.Utilities;
 
