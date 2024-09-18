@@ -21,7 +21,10 @@ public class CustomWebApplicationFactory<TProgram>
                 d => d.ServiceType ==
                     typeof(DbContextOptions<ApplicationDbContext>));
 
-            services.Remove(dbContextDescriptor);
+            if (dbContextDescriptor != null)
+            {
+                services.Remove(dbContextDescriptor);
+            }
 
             var dbConnectionDescriptor = services.SingleOrDefault(
                 d => d.ServiceType ==
