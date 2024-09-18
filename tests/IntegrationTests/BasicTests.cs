@@ -29,8 +29,9 @@ namespace MudBlazor.App.Tests.IntegrationTests
 
             // Assert
             response.EnsureSuccessStatusCode(); // Status Code 200-299
+            Assert.NotNull(response.Content.Headers.ContentType);
             Assert.Equal("text/html; charset=utf-8",
-                response.Content.Headers.ContentType.ToString());
+                response.Content.Headers.ContentType?.ToString());
         }
     }
 }

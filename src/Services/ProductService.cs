@@ -41,7 +41,7 @@ public class ProductService : IProductRepository
         var product = await _context.Products.FindAsync(id);
         if (product == null)
         {
-            throw new Exception("Product not found");
+            throw new InvalidOperationException("Product not found");
         }
         _context.Products.Remove(product);
         await _context.SaveChangesAsync();

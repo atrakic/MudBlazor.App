@@ -66,10 +66,11 @@ services.AddSingleton<Instrumentation>();
 var app = builder.Build();
 
 using var scope = app.Services.CreateScope();
-{
-    var serviceProvider = scope.ServiceProvider;
-    var context = serviceProvider.GetRequiredService<ApplicationDbContext>();
+InitializeDatabase(scope.ServiceProvider);
 
+void InitializeDatabase(IServiceProvider serviceProvider)
+{
+    var context = serviceProvider.GetRequiredService<ApplicationDbContext>();
     context.Database.EnsureCreated();
     SeedData.Initialize(context);
 }
@@ -84,7 +85,6 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-//app.UseAuthorization();
 app.UseAntiforgery();
 app.MapHealthChecks("/healthz");
 app.MapRazorComponents<App>().AddInteractiveServerRenderMode();

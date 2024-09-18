@@ -45,6 +45,9 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       ConnectionStrings__Default: Server=db;Initial Catalog=MudBlazorApp;UID=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=true;Connection Timeout=3;
       MSSQL_SA_PASSWORD: Strong=Passw0rd
+      ## Example of mounting appsettings.json
+      #- $PWD/src/appsettings.json:/app/appsettings.json:ro
+      #- $PWD/src/Migrations:/app/Migrations:rw
     volumes:
       - $PWD/src:/app:rw
     entrypoint:
