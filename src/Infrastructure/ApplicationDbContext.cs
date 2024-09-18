@@ -8,17 +8,12 @@ namespace app.Infrastructure;
 
 public class ApplicationDbContext : DbContext
 {
-    private readonly string _connectionString = default!;
     public static bool IsSqlServer = true;
 
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
     {
         Debug.WriteLine($"{ContextId} context created.");
-    }
-    public ApplicationDbContext(string connectionString)
-    {
-        _connectionString = connectionString;
     }
 
     public DbSet<Customer> Customers { get; set; } = null!;

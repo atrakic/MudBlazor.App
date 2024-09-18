@@ -18,6 +18,9 @@ services:
       ASPNETCORE_HTTP_PORTS: "8080"
       MSSQL_SA_PASSWORD: Strong=Passw0rd
       ConnectionStrings__Default: Server=db;Initial Catalog=MudBlazorApp;UID=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=true;Connection Timeout=3;
+      ## Optional: example mounting appsettings.json
+      #- $PWD/src/appsettings.json:/app/appsettings.json:ro
+      #- $PWD/src/Migrations:/app/Migrations:rw
     healthcheck:
       test:
         - CMD-SHELL
