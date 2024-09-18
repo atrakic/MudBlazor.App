@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using app.Data;
+using app.Infrastructure;
 
 #nullable disable
 
@@ -17,12 +17,12 @@ namespace app.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.6")
+                .HasAnnotation("ProductVersion", "8.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("app.Models.Customer", b =>
+            modelBuilder.Entity("app.Core.Model.Customer", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -52,7 +52,7 @@ namespace app.Migrations
                     b.ToTable("Customers");
                 });
 
-            modelBuilder.Entity("app.Models.Order", b =>
+            modelBuilder.Entity("app.Core.Model.Order", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -81,7 +81,7 @@ namespace app.Migrations
                     b.ToTable("Orders");
                 });
 
-            modelBuilder.Entity("app.Models.OrderDetail", b =>
+            modelBuilder.Entity("app.Core.Model.OrderDetail", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -107,7 +107,7 @@ namespace app.Migrations
                     b.ToTable("OrderDetails");
                 });
 
-            modelBuilder.Entity("app.Models.Product", b =>
+            modelBuilder.Entity("app.Core.Model.Product", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -130,30 +130,30 @@ namespace app.Migrations
                     b.ToTable("Products");
                 });
 
-            modelBuilder.Entity("app.Models.Order", b =>
+            modelBuilder.Entity("app.Core.Model.Order", b =>
                 {
-                    b.HasOne("app.Models.Customer", "Customer")
+                    b.HasOne("app.Core.Model.Customer", "Customer")
                         .WithMany("Orders")
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("app.Models.Product", null)
+                    b.HasOne("app.Core.Model.Product", null)
                         .WithMany("Orders")
                         .HasForeignKey("ProductId");
 
                     b.Navigation("Customer");
                 });
 
-            modelBuilder.Entity("app.Models.OrderDetail", b =>
+            modelBuilder.Entity("app.Core.Model.OrderDetail", b =>
                 {
-                    b.HasOne("app.Models.Order", "Order")
+                    b.HasOne("app.Core.Model.Order", "Order")
                         .WithMany("OrderDetails")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("app.Models.Product", "Product")
+                    b.HasOne("app.Core.Model.Product", "Product")
                         .WithMany("OrderDetails")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -164,17 +164,17 @@ namespace app.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("app.Models.Customer", b =>
+            modelBuilder.Entity("app.Core.Model.Customer", b =>
                 {
                     b.Navigation("Orders");
                 });
 
-            modelBuilder.Entity("app.Models.Order", b =>
+            modelBuilder.Entity("app.Core.Model.Order", b =>
                 {
                     b.Navigation("OrderDetails");
                 });
 
-            modelBuilder.Entity("app.Models.Product", b =>
+            modelBuilder.Entity("app.Core.Model.Product", b =>
                 {
                     b.Navigation("OrderDetails");
 

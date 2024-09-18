@@ -1,11 +1,11 @@
 using Microsoft.Extensions.Configuration;
 
 using app.Services;
-using app.Models;
+using app.Core.Model;
 
 using MudBlazor.Tests.Fixtures;
 
-namespace MudBlazor.Tests.Services;
+namespace UnitTests.Services;
 
 
 public class ProductServiceTests : IClassFixture<DbFixture>

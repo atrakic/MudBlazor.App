@@ -1,4 +1,4 @@
-namespace app.Models;
+namespace app.Core.Model;
 
 public class OrderDetail
 {

@@ -1,13 +1,15 @@
 using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
-using app.Models;
 
-namespace app.Data;
+using app.Core.Model;
+
+namespace app.Infrastructure;
 
 public class ApplicationDbContext : DbContext
 {
     private readonly string _connectionString = default!;
+    public static bool IsSqlServer = true;
 
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
@@ -24,19 +26,24 @@ public class ApplicationDbContext : DbContext
     public DbSet<Product> Products { get; set; } = null!;
     public DbSet<OrderDetail> OrderDetails { get; set; } = null!;
 
-    /**
-    // Dispose pattern.
-    public override void Dispose()
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        Debug.WriteLine($"{ContextId} context disposed.");
-        base.Dispose();
-    }
+        base.OnModelCreating(modelBuilder);
 
-    // Dispose pattern.
-    public override ValueTask DisposeAsync()
-    {
-        Debug.WriteLine($"{ContextId} context disposed async.");
-        return base.DisposeAsync();
+        // Custom table configurations due to: "SQLite Error 1: 'near "MAX": syntax error'"
+        modelBuilder.Entity<Customer>(entity =>
+        {
+            if (!IsSqlServer)
+            {
+                entity.ToTable("Customers");
+                foreach (var property in entity.Metadata.GetProperties())
+                {
+                    if (property.ClrType == typeof(string))
+                    {
+                        property.SetColumnType("text");
+                    }
+                }
+            }
+        });
     }
-    */
 }

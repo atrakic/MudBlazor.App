@@ -1,4 +1,4 @@
-
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
@@ -7,7 +7,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "app", "src\app.csproj", "{2
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{78282683-CB3E-47F9-9A1F-39FE5A98312F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MudBlazor.Tests", "tests\MudBlazor.Tests\MudBlazor.Tests.csproj", "{BD0D285E-11A0-4751-9D55-A646504184A8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "tests\UnitTests\UnitTests.csproj", "{18662A28-DF47-4278-84C4-003114BFC05A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntegrationTests", "tests\IntegrationTests\IntegrationTests.csproj", "{AD66781F-3F31-41A9-9257-96DA99CB0332}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,8 +28,17 @@ Global
 		{BD0D285E-11A0-4751-9D55-A646504184A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BD0D285E-11A0-4751-9D55-A646504184A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BD0D285E-11A0-4751-9D55-A646504184A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{18662A28-DF47-4278-84C4-003114BFC05A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{18662A28-DF47-4278-84C4-003114BFC05A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{18662A28-DF47-4278-84C4-003114BFC05A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{18662A28-DF47-4278-84C4-003114BFC05A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AD66781F-3F31-41A9-9257-96DA99CB0332}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD66781F-3F31-41A9-9257-96DA99CB0332}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD66781F-3F31-41A9-9257-96DA99CB0332}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD66781F-3F31-41A9-9257-96DA99CB0332}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{BD0D285E-11A0-4751-9D55-A646504184A8} = {78282683-CB3E-47F9-9A1F-39FE5A98312F}
+		{18662A28-DF47-4278-84C4-003114BFC05A} = {78282683-CB3E-47F9-9A1F-39FE5A98312F}
+		{AD66781F-3F31-41A9-9257-96DA99CB0332} = {78282683-CB3E-47F9-9A1F-39FE5A98312F}
 	EndGlobalSection
 EndGlobal

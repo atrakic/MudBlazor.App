@@ -2,21 +2,13 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 
-using app.Models;
-using app.Data;
+using app.Core.Model;
+using app.Infrastructure;
+using app.Core.Interfaces;
 
 namespace app.Services;
 
-public interface IProductService
-{
-    Task<List<Product>> GetProductsAsync();
-    Task<Product> GetProductAsync(int id);
-    Task<Product> AddProductAsync(Product product);
-    Task<Product> UpdateProductAsync(Product product);
-    Task DeleteProductAsync(int id);
-}
-
-public class ProductService : IProductService
+public class ProductService : IProductRepository
 {
     private readonly ApplicationDbContext _context;
 

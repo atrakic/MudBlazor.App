@@ -11,6 +11,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
       - ASPNETCORE_HTTPS_PORT=https://+:${ASPNETCORE_HTTPS_PORT:-8443}
       - ASPNETCORE_URLS=http://+:${ASPNETCORE_HTTP_PORTS:-8000}
+      - ConnectionStrings__Default='Data Source=:memory:'
     develop:
       watch:
         - action: sync
@@ -41,7 +42,7 @@ services:
     restart: no
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
-      - ConnectionStrings__Default=Data Source=/tmp/mydb.db
+      - ConnectionStrings__Default='Data Source=:memory:'
     volumes:
       - $PWD/src:/app:rw
       ## Optional: example of mounting appsettings.json

@@ -53,9 +53,13 @@ services:
       - |
         set -exo pipefail
         # dotnet ef dbcontext info --context ApplicationDbContext --verbose
-        # dotnet ef database update --context ApplicationDbContext --verbose
+        # Example initial create
+        # dotnet ef migrations add InitialCreate --context ApplicationDbContext --verbose
+        # Example evolve schema
+        dotnet ef migrations add FooBar --context ApplicationDbContext --verbose
+        dotnet ef database update --context ApplicationDbContext --verbose
         dotnet ef migrations list --no-build --context ApplicationDbContext --verbose
-        tail -f /dev/null
+        #tail -f /dev/null
     depends_on:
       db:
         condition: service_healthy
