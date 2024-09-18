@@ -1,6 +1,6 @@
 using app.Services;
 
-namespace MudBlazor.Tests.Services;
+namespace UnitTests.Services;
 
 public class SumServiceTests
 {

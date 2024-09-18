@@ -5,7 +5,7 @@ using app.Core.Model;
 
 using MudBlazor.Tests.Fixtures;
 
-namespace MudBlazor.Tests.Services;
+namespace UnitTests.Services;
 
 
 public class ProductServiceTests : IClassFixture<DbFixture>

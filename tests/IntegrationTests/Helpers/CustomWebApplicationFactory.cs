@@ -2,11 +2,14 @@ using System.Data.Common;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using RazorPagesProject.Data;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace RazorPagesProject.Tests;
+using app.Infrastructure;
+using app.Core.Model;
 
-// <snippet1>
+namespace IntegrationTests.Helpers;
+
 public class CustomWebApplicationFactory<TProgram>
     : WebApplicationFactory<TProgram> where TProgram : class
 {
@@ -29,9 +32,9 @@ public class CustomWebApplicationFactory<TProgram>
             // Create open SqliteConnection so EF won't automatically close it.
             services.AddSingleton<DbConnection>(container =>
             {
-                var connection = new SqliteConnection("DataSource=:memory:");
+                // https://learn.microsoft.com/en-us/dotnet/standard/data/sqlite/in-memory-databases#shareable-in-memory-databases
+                var connection = new SqliteConnection("Data Source=InMemorySample;Mode=Memory;Cache=Shared");
                 connection.Open();
-
                 return connection;
             });
 
@@ -45,4 +48,3 @@ public class CustomWebApplicationFactory<TProgram>
         builder.UseEnvironment("Development");
     }
 }
-// </snippet1>
