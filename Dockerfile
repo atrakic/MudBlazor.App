@@ -1,4 +1,3 @@
-
 # https://mcr.microsoft.com/product/dotnet/sdk
 # https://mcr.microsoft.com/v2/dotnet/sdk/tags/list
 FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0-jammy AS build
@@ -13,8 +12,10 @@ RUN dotnet restore -a $TARGETARCH
 COPY src/. .
 RUN dotnet publish -a $TARGETARCH --no-restore -o /app
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-jammy
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-jammy AS final
 LABEL org.opencontainers.image.description="MudBlazor app demo"
+WORKDIR /app
+EXPOSE 8080
 
 RUN set -x \
     && apt-get update \
@@ -23,9 +24,6 @@ RUN set -x \
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD curl--fail http://localhost:8080/healthz || exit 1
-
-EXPOSE 8080
-WORKDIR /app
 
 COPY --from=build /app .
 USER $APP_UID

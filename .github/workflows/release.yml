@@ -31,24 +31,26 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion != 'failure' }}
     steps:
-      # Checkout latest or specific tag
-      - name: checkout
+      - name: Checkout
         if: ${{ github.event.inputs.version == '' || github.event.inputs.version == 'latest' }}
         uses: actions/checkout@v4
 
-      - name: checkout tag
+      - name: Checkout tag
         if: ${{ github.event.inputs.version != '' && github.event.inputs.version != 'latest' }}
         uses: actions/checkout@v4
         with:
           ref: refs/tags/${{ github.event.inputs.version }}
 
-      - name: repository name fix and env
+      - name: Setup env vars
         run: |
-          echo "image_repository_name=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-          echo "TAG_NAME=latest" >> $GITHUB_ENV
+          echo "IMAGE_REPOSITORY_NAME=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+          
           if [ "${{ github.event.release.tag_name }}" != "" ]; then
             echo "TAG_NAME=${{ github.event.release.tag_name }}" >> $GITHUB_ENV
+          else
+            echo "TAG_NAME=latest" >> $GITHUB_ENV
           fi;
+          
           if [ "${{ github.event.inputs.version }}" != "" ]; then
             echo "TAG_NAME=${{ github.event.inputs.version }}" >> $GITHUB_ENV
           fi;
@@ -56,7 +58,7 @@ jobs:
       - name: Generate .env file before deployment
         run: |
           echo "VERSION=${{ env.TAG_NAME }}" >> .env
-          echo "IMAGE=ghcr.io/${{ env.image_repository_name }}" >> .env
+          echo "IMAGE=ghcr.io/${{ env.IMAGE_REPOSITORY_NAME }}" >> .env
           echo "VIRTUAL_HOST=${{ secrets.DEPLOY_HOST }}" >> .env
           echo "LETSENCRYPT_HOST=${{ secrets.DEPLOY_HOST }}" >> .env
           echo "DEFAULT_EMAIL=${{ secrets.DEFAULT_EMAIL }}" >> .env
@@ -123,6 +125,6 @@ jobs:
             docker compose -f ./init.yml -f ./production.yml top
             docker compose -f ./init.yml -f ./production.yml stats --no-stream
 
-      - name: Cleanup workspace
+      - name: Cleanup gh workspace
         run: |
           rm -f .env
