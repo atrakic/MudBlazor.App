@@ -13,10 +13,11 @@ services:
         - action: rebuild
           path: src
           target: /app
+    env_file:
+      - .env
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_HTTP_PORTS: "8080"
-      MSSQL_SA_PASSWORD: Strong=Passw0rd
       ConnectionStrings__Default: Server=db;Initial Catalog=MudBlazorApp;UID=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=true;Connection Timeout=3;
       ## Optional: example mounting appsettings.json
       #- $PWD/src/appsettings.json:/app/appsettings.json:ro
@@ -44,10 +45,11 @@ services:
     tty: true
     container_name: migrations
     working_dir: /app
+    env_file:
+      - .env
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ConnectionStrings__Default: Server=db;Initial Catalog=MudBlazorApp;UID=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=true;Connection Timeout=3;
-      MSSQL_SA_PASSWORD: Strong=Passw0rd
       ## Example of mounting appsettings.json
       #- $PWD/src/appsettings.json:/app/appsettings.json:ro
       #- $PWD/src/Migrations:/app/Migrations:rw
@@ -75,16 +77,17 @@ services:
   db:
     image: mcr.microsoft.com/mssql/server:2022-CU12-ubuntu-22.04
     container_name: db
+    env_file:
+      - .env
     environment:
       ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: Strong=Passw0rd
     ports:
       - "1433:1433"
     hostname: db
     healthcheck:
       test:
         - CMD-SHELL
-        - /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "Strong=Passw0rd" -Q "SELECT getdate()" -b
+        - /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -Q "SELECT getdate()" -b
       timeout: 3s
       interval: 10s
       retries: 10
