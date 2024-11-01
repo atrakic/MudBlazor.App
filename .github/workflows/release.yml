@@ -74,7 +74,7 @@ jobs:
           target: "~/.deploy/${{ github.event.repository.name }}/"
 
       - name: Verify remote docker-compose config before deployment
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v1.1.0
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USERNAME }}
@@ -89,7 +89,7 @@ jobs:
             fi
 
       - name: Run remote db migrations
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v1.1.0
         env:
           APPTOKEN: ${{ secrets.GITHUB_TOKEN }}
           USERNAME: ${{ secrets.DEPLOY_USERNAME }}
@@ -106,7 +106,7 @@ jobs:
             docker compose -f ./init.yml -f ./production.yml up migrations
 
       - name: Run remote docker-compose up via ssh
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v1.1.0
         env:
           APPTOKEN: ${{ secrets.GITHUB_TOKEN }}
           USERNAME: ${{ secrets.DEPLOY_USERNAME }}
