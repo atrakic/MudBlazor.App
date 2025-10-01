@@ -33,11 +33,11 @@ jobs:
     steps:
       - name: Checkout
         if: ${{ github.event.inputs.version == '' || github.event.inputs.version == 'latest' }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Checkout tag
         if: ${{ github.event.inputs.version != '' && github.event.inputs.version != 'latest' }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: refs/tags/${{ github.event.inputs.version }}
 
